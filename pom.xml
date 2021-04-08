@@ -5,17 +5,18 @@
   <version>0.0.1-SNAPSHOT</version>
   <name>DSProject</name>
   
-   <dependencies>
-	<dependency>
+  <dependencies>
+		<dependency>
 			<groupId>com.google.protobuf</groupId>
 			<artifactId>protobuf-java</artifactId>
 			<version>3.6.1</version>
 		</dependency>
 		
+		<!-- https://mvnrepository.com/artifact/javax.annotation/javax.annotation-api -->
 		<dependency>
-			<groupId>javax.annotation</groupId>
-			<artifactId>javax.annotation-api</artifactId>
-			<version>1.3.2</version>
+    		<groupId>javax.annotation</groupId>
+    		<artifactId>javax.annotation-api</artifactId>
+    		<version>1.3.2</version>
 		</dependency>
 		
 		<dependency>
@@ -28,18 +29,41 @@
 			<artifactId>grpc-protobuf</artifactId>
 			<version>1.15.1</version>
 		</dependency>
+		
 		<dependency>
 			<groupId>io.grpc</groupId>
 			<artifactId>grpc-stub</artifactId>
 			<version>1.15.1</version>
 		</dependency>
+		
+		<dependency>
+		    <groupId>com.google.protobuf</groupId>
+		    <artifactId>protobuf-java-util</artifactId>
+		    <version>3.6.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>28.2-jre</version>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/javax.jmdns/jmdns -->
+		<dependency>
+    		<groupId>javax.jmdns</groupId>
+    		<artifactId>jmdns</artifactId>
+   			 <version>3.4.1</version>
+		</dependency>
+		
+
 	</dependencies>
 
-		<properties>
+	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-	
+
 	<build>
+
 		<defaultGoal>clean generate-sources compile install</defaultGoal>
 
 		<plugins>
@@ -55,12 +79,12 @@
 							<goal>run</goal>
 						</goals>
 						<configuration>
-						   <includeMavenTypes>direct</includeMavenTypes>
-							
+							<includeMavenTypes>direct</includeMavenTypes>
+
 							<inputDirectories>
 								<include>src/main/resources</include>
 							</inputDirectories>
-							
+
 							<outputTargets>
 								<outputTarget>
 									<type>java</type>
@@ -72,10 +96,12 @@
 									<outputDirectory>src/main/java</outputDirectory>
 								</outputTarget>
 							</outputTargets>
+
 						</configuration>
 					</execution>
 				</executions>
 			</plugin>
+
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -88,5 +114,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	
 </project>
