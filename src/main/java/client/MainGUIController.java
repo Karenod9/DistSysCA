@@ -5,6 +5,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
 
+
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -40,7 +41,7 @@ public class MainGUIController {
 	private static JPasswordField passText;
 	private static JButton button;
 	private static JLabel success;
-	private static JFrame frame;
+	private  JFrame frame;
 	
 	private static ServiceInfo authenticationServicesInfo; 
 
@@ -51,17 +52,21 @@ public class MainGUIController {
 
 	public static void main(String[] args) {
 		
+
+		
+		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {
+					//EventQueue.getCurrentEvent();
 					MainGUIController window = new MainGUIController();
-					
 					window.frame.setVisible(true);
 				}catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 		});
+		
 	}
 		
 		
@@ -69,11 +74,21 @@ public class MainGUIController {
 	public MainGUIController() {		
 		String authentication_service_type = "_AuthenticationServices._tcp.local.";
 		discoverAuthenticationServices(authentication_service_type);
+		System.out.println("MAIN GUI");
+		
+		
+		
+		String host = "localhost";
+		int port = 50051;
+		
+		System.out.println(host);
 				
-
+//		@SuppressWarnings("deprecation")
+//		String host = authenticationServicesInfo.getHostAddress();
+//		int port = authenticationServicesInfo.getPort();
 		
 		ManagedChannel channel = ManagedChannelBuilder
-				.forAddress("localhost", 9090)
+				.forAddress(host, port)
 				.usePlaintext()
 				.build();
 		
@@ -81,6 +96,7 @@ public class MainGUIController {
 		asyncStub = AuthenticationServicesGrpc.newStub(channel);
 		
 		initialize();
+		System.out.println("MAIN GUI 2");
 	}
 		
 	private void initialize() {
@@ -157,7 +173,8 @@ public class MainGUIController {
 	
 }
 	
-	private static void discoverAuthenticationServices(String service_type) {
+	private void discoverAuthenticationServices(String service_type) {
+		System.out.println("Dis 1");
 		
 		try {
 			JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
@@ -170,17 +187,17 @@ public class MainGUIController {
 					
 					authenticationServicesInfo = event.getInfo();
 					
-					String[] host = authenticationServicesInfo.getHostAddresses();
+					//String[] host = authenticationServicesInfo.getHostAddresses();
 					//int port = authenticationServicesInfo.getPort();
 					
 					int port = authenticationServicesInfo.getPort();
-					System.out.println("hello");
-					System.out.println("resolving " + service_type + " with properties ...");
-					System.out.println("\t port: " + port);
-					System.out.println("\t type:"+ event.getType());
-					System.out.println("\t name: " + event.getName());
-					System.out.println("\t description/properties: " + authenticationServicesInfo.getNiceTextString());
-					System.out.println("\t host: " + authenticationServicesInfo.getHostAddresses()[0]);					
+					System.out.println("RESOLVING : .......");
+					System.out.println("resolving " + service_type + " with properties as follows: ...");
+					System.out.println(" Port: " + port);
+					System.out.println(" Type:"+ event.getType());
+					System.out.println(" Name: " + event.getName());
+					System.out.println(" Description: " + authenticationServicesInfo.getNiceTextString());
+					System.out.println(" Host: " + authenticationServicesInfo.getHostAddresses()[0]);					
 					
 				}
 

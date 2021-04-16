@@ -28,7 +28,7 @@ public class AuthenticationServicesServer extends AuthenticationServicesImplBase
 		Properties prop = authenticationServicesServer.getProperties();
 		authenticationServicesServer.registerService(prop);
 		
-		//int port = 9090;
+		//int port = 50051;
 		int port = Integer.valueOf(prop.getProperty("service_port"));
 		
 		try {
@@ -81,6 +81,7 @@ public class AuthenticationServicesServer extends AuthenticationServicesImplBase
 			jmdns.registerService(serviceInfo);
 			
 			System.out.printf("registering service with type %s and name %s \n", service_type, service_name);
+			System.out.println("Service has been registered! ");
 			
 			Thread.sleep(1000);
 		}catch(IOException e) {

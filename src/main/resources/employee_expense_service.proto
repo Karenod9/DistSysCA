@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.dsproject.employeeexpenseservice";
+option java_outer_classname = "EmployeeExpenseServiceImpl";
+
+package employeeexpenseservice;
+
+service EmployeeExpenseService{
+
+	rpc addExpenseClaim(AddExpenseClaimRequest) returns (AddExpenseClaimResponse){}
+	rpc addMultiExpenseClaim(stream AddMultiExpenseClaimRequest) returns (stream AddMultiExpenseClaimResponse) {}
+	rpc uploadExpenseReceipts(stream UploadExpenseReceiptsRequest) returns (UploadExpenseReceiptsResponse){}
+	rpc checkExpenseClaim(CheckExpenseClaimRequest) returns (stream CheckExpenseClaimResponse){}
+
+}
+	
+	message AddExpenseClaimRequest{
+		string department = 1;
+		string expenseType = 2;
+		double totalAmt = 3;
+		int32 expenseClaimNo = 4;
+	}
+
+	message AddExpenseClaimResponse{
+		string claimResult = 1;
+	}
+	
+	
+
+	message AddMultiExpenseClaimRequest{
+		string department =1;
+		string expenseType = 2;
+		double amount = 3;
+		int32 expenseClaimNo =4;
+	}
+	
+	message AddMultiExpenseClaimResponse{
+		double runningTotal = 2;
+		string claimResult =1;
+	}
+	
+	
+	
+	
+
+	message UploadExpenseReceiptsRequest{
+		bytes data = 1;
+		int64 size = 2;
+		string fileName = 3;
+		int64 actualFileSize = 4;
+		}
+
+	
+	message UploadExpenseReceiptsResponse{
+		string fileName = 1;
+		int64 size =2;
+		Status status = 3;
+	}
+	
+	enum Status{
+		PENDING = 0;
+		IN_PROGRESS = 1;
+		UPLOADED = 2;
+		FAILED = 3;
+	}
+	
+	
+	
+	
+	
+	enum ClaimStatus{
+		SENT_FOR_APPROVAL = 0;
+		APPROVED =1;
+		DENIED =2;
+		PAID = 3;
+	}
+	
+	message CheckExpenseClaimRequest{
+		int32 checkAllExpenses =1;
+	}
+	
+	message CheckExpenseClaimResponse{
+		string claimNumber = 1;
+		ClaimStatus status =2;
+		double amount = 3;
+	}
+	
+
