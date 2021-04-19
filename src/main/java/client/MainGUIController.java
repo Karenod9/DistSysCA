@@ -44,11 +44,13 @@ public class MainGUIController {
 	private  JFrame frame;
 	
 	private static ServiceInfo authenticationServicesInfo; 
+	private static ServiceInfo empServiceInfo;
+	
 
 	private static AuthenticationServicesBlockingStub blockingStub;
 	private static AuthenticationServicesStub asyncStub;
 	
-
+	
 
 	public static void main(String[] args) {
 		
@@ -74,9 +76,14 @@ public class MainGUIController {
 	public MainGUIController() {		
 		String authentication_service_type = "_AuthenticationServices._tcp.local.";
 		discoverAuthenticationServices(authentication_service_type);
+		
+		
+		
+		String emp_service_type = "_EmployeeExpenseService._tcp.local.";
+		discoverEmployeeExpenseServices(emp_service_type);
+		
+		
 		System.out.println("MAIN GUI");
-		
-		
 		
 		String host = "localhost";
 		int port = 50051;
@@ -95,7 +102,8 @@ public class MainGUIController {
 		blockingStub = AuthenticationServicesGrpc.newBlockingStub(channel);
 		asyncStub = AuthenticationServicesGrpc.newStub(channel);
 		
-		initialize();
+		//initialize();
+		onLoginWindow();
 		System.out.println("MAIN GUI 2");
 	}
 		
@@ -173,6 +181,32 @@ public class MainGUIController {
 	
 }
 	
+	//x y w h
+	private void onLoginWindow() {
+		JPanel panel = new JPanel();
+		
+		frame = new JFrame();
+		frame.setTitle("Employee Services : ");
+		frame.setSize(400, 250);
+		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		
+		frame.add(panel);
+		
+		
+		button = new JButton("Expense Services");
+		button.setBounds(210, 80, 80, 80);
+		panel.add(button);
+		
+		button = new JButton("Room Booking Services");
+		button.setBounds(210, 80, 80, 80);
+		panel.add(button);
+
+
+		
+		
+		
+	}
+	
 	private void discoverAuthenticationServices(String service_type) {
 		System.out.println("Dis 1");
 		
@@ -198,6 +232,56 @@ public class MainGUIController {
 					System.out.println(" Name: " + event.getName());
 					System.out.println(" Description: " + authenticationServicesInfo.getNiceTextString());
 					System.out.println(" Host: " + authenticationServicesInfo.getHostAddresses()[0]);					
+					
+				}
+
+				@Override
+				public void serviceAdded(ServiceEvent event) {
+					// TODO Auto-generated method stub
+					
+				}
+
+				@Override
+				public void serviceRemoved(ServiceEvent event) {
+					// TODO Auto-generated method stub
+					
+				}
+			});
+			jmdns.close();
+		} catch (UnknownHostException e) {
+			System.out.println(e.getMessage());
+		} catch (IOException e) {
+			System.out.println(e.getMessage());
+		}
+	}
+	
+	
+	
+	private void discoverEmployeeExpenseServices(String service_type) {
+		System.out.println("Dis 2");
+		
+		try {
+			JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
+	
+			jmdns.addServiceListener(service_type, new ServiceListener() {
+				
+				@Override
+				public void serviceResolved(ServiceEvent event) {
+					System.out.println("Employee Expense Services resolved : " +event.getInfo());
+					
+					empServiceInfo = event.getInfo();
+					
+					//String[] host = authenticationServicesInfo.getHostAddresses();
+					//int port = authenticationServicesInfo.getPort();
+					
+					int port = empServiceInfo.getPort();
+					System.out.println("RESOLVING : .......");
+					System.out.println("resolving " + service_type + " with properties as follows: ...");
+					System.out.println(" Port: " + port);
+					System.out.println(" Type:"+ event.getType());
+					System.out.println(" Name: " + event.getName());
+					System.out.println(" Description: " + empServiceInfo.getNiceTextString());
+					System.out.println(" Host: " + empServiceInfo.getHostAddresses()[0]);					
 					
 				}
 

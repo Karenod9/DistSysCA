@@ -9,7 +9,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+import java.text.DecimalFormat;
 import java.net.InetAddress;
 import java.util.Properties;
 import java.util.Random;
@@ -83,8 +83,8 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 			
 			String service_description_properties = prop.getProperty("service_description");
 			
-			ServiceInfo serviceInfo = ServiceInfo.create(service_type,  service_name,  service_port,  service_description_properties);
-			jmdns.registerService(serviceInfo);
+			ServiceInfo empServiceInfo = ServiceInfo.create(service_type,  service_name,  service_port,  service_description_properties);
+			jmdns.registerService(empServiceInfo);
 			
 			System.out.printf("registering service with type %s and name %s \n", service_type, service_name);
 			
@@ -134,8 +134,10 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 		
 	public StreamObserver<AddMultiExpenseClaimRequest> addMultiExpenseClaim (StreamObserver<AddMultiExpenseClaimResponse> responseObserver){
 		return new StreamObserver<AddMultiExpenseClaimRequest>() {
+		//StreamObserver<AddMultiExpenseClaimRequest> requestObserver = new StreamObserver<AddMultiExpenseClaimRequest>() {
 			Double currentAmount = 0.00;
 			double runningTotal = 0.00;
+			DecimalFormat df = new DecimalFormat("###.##");
 			
 			String department;
 			String expenseType;
@@ -187,6 +189,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 				
 				System.out.println("Receiving expense requests : " +"\nExpense Claim No = " + req.getExpenseClaimNo() 
 				+ "\nDepartment  = " + req.getDepartment() +"\nExpense Type = " + req.getExpenseType() +"\nReceipt amount = " + req.getAmount());
+				System.out.println("-------------------------------------------------");
 				
 				//responseObserver.onCompleted();
 				
@@ -202,7 +205,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 
 			@Override
 			public void onCompleted() {
-				System.out.println("Total Amount received : " + runningTotal);
+				System.out.println("Total Amount received : " + df.format(runningTotal));
 				
 				responseObserver.onCompleted();
 				
@@ -216,15 +219,23 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 		};
 	}
 	
+	
+	
+	@Override
 	public StreamObserver<UploadExpenseReceiptsRequest> uploadExpenseReceipts(StreamObserver<UploadExpenseReceiptsResponse> responseObserver){
 		return new StreamObserver<UploadExpenseReceiptsRequest>() {
+		
+		//StreamObserver <UploadExpenseReceiptsRequest> requestObserver = new StreamObserver<UploadExpenseReceiptsRequest>() {
+			
 			byte[] data;
 			long actualSize = 0;
 			long currentSize = 0;
 			long totalRec = 0;
 			String fileName;
 			Status status = Status.PENDING;
+			
 			@Override
+			//client sends a message
 			public void onNext(UploadExpenseReceiptsRequest req) {
 				actualSize = req.getActualFileSize();
 				
@@ -236,20 +247,20 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 				
 					fileName = req.getFileName();
 					status = Status.IN_PROGRESS;
-				
-					System.out.println("tot rec" + totalRec);
-					System.out.println("Uploading....");
 					
-					System.out.println("DATA :"  + data);
-				
-					System.out.println("File size " + actualSize + "curr size: " + currentSize + " ");
+					System.out.println("Receiving....");
+					System.out.println("File size " + actualSize);
+					System.out.println("tot rec" + totalRec);
+					
+					
 				}
 			
-			System.out.println("Finished upload....");
+			//System.out.println("Finished upload....");
 				
 			}
 							
 			@Override
+			//client sends an error
 			public void onError(Throwable t) {
 				status = Status.FAILED;
 				System.out.println("ERROR - Server=side - upload file");
@@ -258,6 +269,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 			}
 
 			@Override
+			//client is finished
 			public void onCompleted() {
 				status = Status.UPLOADED;
 				UploadExpenseReceiptsResponse response = UploadExpenseReceiptsResponse.newBuilder()
@@ -265,6 +277,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 						.setFileName(fileName)
 						.setSize(actualSize)
 						.build();
+			
 				System.out.println("Complete Server side ");
 				responseObserver.onNext(response);
 				responseObserver.onCompleted();
@@ -274,10 +287,14 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 //				System.out.print(status);
 //				System.out.println("File uploaded");
 				
+			
+			
 			}
 			
 		};
-	}
+		
+}
+
 
 	
 	@Override
@@ -306,6 +323,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 					}else if(ranReceiptAmount > 90.00) {
 						status = ClaimStatus.DENIED;
 					}		
+					
 					
 					responseObserver.onNext(CheckExpenseClaimResponse.newBuilder()
 							.setClaimNumber(claimNumber)

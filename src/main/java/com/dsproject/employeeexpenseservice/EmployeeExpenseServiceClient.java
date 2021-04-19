@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Random;
@@ -35,22 +36,27 @@ public class EmployeeExpenseServiceClient {
 
 	public static void main(String[] args) throws IOException  {
 		ManagedChannel channel = ManagedChannelBuilder
-				.forAddress("localhost", 9090)
+				.forAddress("localhost", 50051)
 				.usePlaintext()
 				.build();
 		
 		blockingStub = EmployeeExpenseServiceGrpc.newBlockingStub(channel);
+		
+		//create an asynchronous client
 		asyncStub = EmployeeExpenseServiceGrpc.newStub(channel);
 		
-//		addExpenseClaim();
-//		addMultiExpenseClaim();
-//		uploadExpenseReceipts();
-		//checkExpenseClaimAsync();
-		checkExpenseClaimBlocking();
+//		addExpenseClaim(channel);
+		addMultiExpenseClaim(channel);
+//		uploadExpenseReceipts(channel);
+		//checkExpenseClaimAsync(channel);
+		//checkExpenseClaimBlocking(channel);
+		
+		//System.out.println("Channel is shutting down..");
+		//channel.shutdown();
 		
 
 	}
-	public static void addExpenseClaim() {
+	public static void addExpenseClaim(ManagedChannel channel) {
 		String department, expenseType;
 		int expenseClaimNo;
 		double totalAmt = 10.00;
@@ -77,20 +83,24 @@ public class EmployeeExpenseServiceClient {
 		
 	}
 	
-	public static void addMultiExpenseClaim() {
-		//final CountDownLatch finishLatch = new CountDownLatch(1);
+	public static void addMultiExpenseClaim(ManagedChannel channel) {
+		
+		CountDownLatch latch = new CountDownLatch(1);
+		
 		StreamObserver<AddMultiExpenseClaimResponse> responseObserver = new StreamObserver <AddMultiExpenseClaimResponse>() {
 			int count = 0;
 			double runningTotal = 0.0;
+			DecimalFormat df = new DecimalFormat("###.##");
 			
 			@Override
 			public void onNext(AddMultiExpenseClaimResponse res) {
 				try {
 					runningTotal = res.getRunningTotal();
 					Thread.sleep(0);
-					System.out.println("Sending expense claim : " + "Total amount sent : "+ runningTotal);
+					System.out.println("Sending expense claim : " + "Total amount sent : "+ df.format(runningTotal));
 					System.out.println(res.getClaimResult());
 					count += 1;
+					System.out.println("------------------------------------------------");
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -101,14 +111,14 @@ public class EmployeeExpenseServiceClient {
 			public void onError(Throwable t) {
 				System.out.println("ERROR - Client=side - multi-expense");
 				t.printStackTrace();
-				//finishLatch.countDown();
+				latch.countDown();
 			}
 			
 			@Override
 			public void onCompleted() {
 				System.out.println("Expenses sent!");
-				System.out.println("... received " + count + " expense requests" + " Total amount sent : " + runningTotal);
-				//finishLatch.countDown();
+				System.out.println("... received " + count + " expense requests" + " Total amount sent : " + df.format(runningTotal));
+				latch.countDown();
 			}
 		};
 		
@@ -118,13 +128,14 @@ public class EmployeeExpenseServiceClient {
 		int expenseClaimNo;
 		
 		Random ran = new Random();
-		expenseClaimNo = ran.nextInt();
+		
 		Scanner input = new Scanner(System.in);
 		
 		double num;
 		int addNum = 0;
 		try {
 			do {
+				expenseClaimNo = ran.nextInt((100000 - 10) + 1)+ 10;
 				
 				System.out.println("Enter a department: ");
 				department = input.nextLine();
@@ -146,7 +157,7 @@ public class EmployeeExpenseServiceClient {
 				addNum = addNum+1;
 				
 				try {
-					Thread.sleep(3000);
+					Thread.sleep(1000);
 				}catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -156,23 +167,15 @@ public class EmployeeExpenseServiceClient {
 			}while(addNum != 2);
 			
 			System.out.println("Loading......");
+
+			requestObserver.onCompleted();
+			
 			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
+				latch.await(3, TimeUnit.SECONDS);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
 			}
-			responseObserver.onCompleted();
-			
-			
-//			finishLatch.await(5, TimeUnit.SECONDS);
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			
-			
-			
 			
 			
 		}catch (RuntimeException e) {
@@ -181,25 +184,36 @@ public class EmployeeExpenseServiceClient {
 
 	}
 	
-	public static void uploadExpenseReceipts() throws IOException {
+	public static void uploadExpenseReceipts(ManagedChannel channel) throws IOException {
+		
+		CountDownLatch latch = new CountDownLatch(1);
+		
 		StreamObserver<UploadExpenseReceiptsResponse> responseObserver = new StreamObserver<UploadExpenseReceiptsResponse>() {
 		
+			
+			
 			@Override
 			public void onNext(UploadExpenseReceiptsResponse value) {
+				//response from server
+				//called once
 				System.out.println("File upload status : " + value.getStatus());
-			
+				
 				
 			}
 
 			@Override
 			public void onError(Throwable t) {
+				//error from the server
 				System.out.println("ERROR - Client side - file upload");
 				
 			}
 
 			@Override
 			public void onCompleted() {
+				//server is finished
+				//called right after onNext()
 				System.out.println("File uploaded");
+				latch.countDown();
 				
 			}
 			
@@ -234,47 +248,41 @@ public class EmployeeExpenseServiceClient {
 								.setActualFileSize(actualFileSize)
 								.build());
 						
+						
+						
 						System.out.println("buff size " + buffSize);
 						System.out.println("chunksize " + chunkSize);
 						System.out.println("Sending File...");
 						
 						try {
-							Thread.sleep(new Random().nextInt(1000) + 500);
+							Thread.sleep(1000);
 						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 						
-						
 					}
-					
-					try {
-						Thread.sleep(10000);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
-	
-					
-					
-					
+					requestObserver.onCompleted();
 					buffIn.close();
-					responseObserver.onCompleted();
+					
 					
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				
-				
-			} catch (FileNotFoundException e) {
-				// TODO Auto-generated catch block
+			}catch (FileNotFoundException e) {
 				e.printStackTrace();
 			}
-		}
 			
+		try {
+			latch.await(3L, TimeUnit.SECONDS);
+		}catch(InterruptedException e) {
+			e.printStackTrace();
+		}	
 	}
+}
 	
-//	public static void checkExpenseClaimAsync() {
+//	public static void checkExpenseClaimAsync(ManagedChannel channel) {
 //		
 //		int checkExpenses =1;
 //		CheckExpenseClaimRequest req = CheckExpenseClaimRequest.newBuilder()
@@ -284,7 +292,7 @@ public class EmployeeExpenseServiceClient {
 //
 //			@Override
 //			public void onNext(CheckExpenseClaimResponse value) {
-//				System.out.println("Receiving claimed expenses :");
+//				//System.out.println("Receiving claimed expenses :");
 //				System.out.println("Claim Number : " + value.getClaimNumber() + "Status : " + value.getStatus());
 //			}
 //
@@ -305,7 +313,7 @@ public class EmployeeExpenseServiceClient {
 //		asyncStub.checkExpenseClaim(req, responseObserver);
 //	}
 	
-	public static void checkExpenseClaimBlocking() {
+	public static void checkExpenseClaimBlocking(ManagedChannel channel) {
 		int checkExpenses =1;
 		CheckExpenseClaimRequest req = CheckExpenseClaimRequest.newBuilder()
 				.setCheckAllExpenses(checkExpenses).build();
@@ -313,8 +321,16 @@ public class EmployeeExpenseServiceClient {
 		try {
 			Iterator<CheckExpenseClaimResponse> response = blockingStub.checkExpenseClaim(req);
 			while(response.hasNext()) {
-				CheckExpenseClaimResponse t = response.next();
-				System.out.println("Claim no : " + t.getClaimNumber() + " " +  "Amount : €" + t.getAmount() + " " + "Status : " + t.getStatus());
+				CheckExpenseClaimResponse res = response.next();
+				System.out.println("Claim no : " + res.getClaimNumber() + " || " +  "Amount : €" + res.getAmount() + " || " + "Status : " + res.getStatus());
+				
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
 			}
 		}catch(StatusRuntimeException e) {
 			e.printStackTrace();
