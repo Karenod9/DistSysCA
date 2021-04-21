@@ -85,14 +85,15 @@ public class MainGUIController {
 		
 		System.out.println("MAIN GUI");
 		
-		String host = "localhost";
-		int port = 50051;
+//		String host = "localhost";
+//		int port = 50051;
 		
-		System.out.println(host);
+		
 				
-//		@SuppressWarnings("deprecation")
-//		String host = authenticationServicesInfo.getHostAddress();
-//		int port = authenticationServicesInfo.getPort();
+		@SuppressWarnings("deprecation")
+		String host = authenticationServicesInfo.getHostAddress();
+		int port = authenticationServicesInfo.getPort();
+		System.out.println(host);
 		
 		ManagedChannel channel = ManagedChannelBuilder
 				.forAddress(host, port)
@@ -102,8 +103,8 @@ public class MainGUIController {
 		blockingStub = AuthenticationServicesGrpc.newBlockingStub(channel);
 		asyncStub = AuthenticationServicesGrpc.newStub(channel);
 		
-		//initialize();
-		onLoginWindow();
+		initialize();
+		//onLoginWindow();
 		System.out.println("MAIN GUI 2");
 	}
 		
@@ -221,7 +222,7 @@ public class MainGUIController {
 					
 					authenticationServicesInfo = event.getInfo();
 					
-					//String[] host = authenticationServicesInfo.getHostAddresses();
+					String[] host = authenticationServicesInfo.getHostAddresses();
 					//int port = authenticationServicesInfo.getPort();
 					
 					int port = authenticationServicesInfo.getPort();
