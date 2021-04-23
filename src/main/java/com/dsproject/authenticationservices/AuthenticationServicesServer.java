@@ -98,16 +98,23 @@ public class AuthenticationServicesServer extends AuthenticationServicesImplBase
 	public void login(LoginRequest request, StreamObserver<LoginResponse> responseObserver) {
 		String username = request.getUsername();
 		String password = request.getPassword();
-				
-		if(username.equals(password)) {
+		
+		if(username.equals(" ") || username.equals("") || username.equals(null)){
 			responseObserver.onNext(LoginResponse.newBuilder()
-					.setResponseCode(0)
-					.setResponseMessage("Login Successful! " + "\nWelcome back " + username).build());
-		}else {
+					.setResponseCode(200)
+					.setResponseMessage("Username cannot be empty").build());		
+		}else if(password.equals(" ") || password.equals("") || password.equals(null)) {
+			responseObserver.onNext(LoginResponse.newBuilder()
+					.setResponseCode(201)
+					.setResponseMessage("Password cannot be empty").build());
+		}else if(!username.equals(password)) {
 			responseObserver.onNext(LoginResponse.newBuilder()
 					.setResponseCode(100)
 					.setResponseMessage("Login Failed. Ensure your password & username match").build());
-			
+		}else if(username.equals(password)) {
+			responseObserver.onNext(LoginResponse.newBuilder()
+					.setResponseCode(0)
+					.setResponseMessage("Login Successful! " + "\nWelcome back " + username).build());
 		}
 		responseObserver.onCompleted();
 	}

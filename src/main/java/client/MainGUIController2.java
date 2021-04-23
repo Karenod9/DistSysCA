@@ -6,11 +6,13 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPasswordField;
+import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JTextField;
 
 import java.awt.EventQueue;
@@ -25,10 +27,19 @@ import javax.jmdns.ServiceEvent;
 import javax.jmdns.ServiceInfo;
 import javax.jmdns.ServiceListener;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.text.DecimalFormat;
+import java.util.Iterator;
 import java.util.Random;
+import java.util.Scanner;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -42,16 +53,27 @@ import com.dsproject.authenticationservices.AuthenticationServicesGrpc.Authentic
 
 
 import com.dsproject.employeeexpenseservice.EmployeeExpenseServiceGrpc;
+import com.dsproject.employeeexpenseservice.Status;
+import com.dsproject.employeeexpenseservice.UploadExpenseReceiptsRequest;
+import com.dsproject.employeeexpenseservice.UploadExpenseReceiptsResponse;
 import com.dsproject.employeeexpenseservice.AddExpenseClaimRequest;
 import com.dsproject.employeeexpenseservice.AddExpenseClaimResponse;
+import com.dsproject.employeeexpenseservice.AddMultiExpenseClaimRequest;
+import com.dsproject.employeeexpenseservice.AddMultiExpenseClaimResponse;
+import com.dsproject.employeeexpenseservice.CheckExpenseClaimRequest;
+import com.dsproject.employeeexpenseservice.CheckExpenseClaimResponse;
+import com.dsproject.employeeexpenseservice.ClaimStatus;
 import com.dsproject.employeeexpenseservice.EmployeeExpenseServiceGrpc.EmployeeExpenseServiceBlockingStub;
 import com.dsproject.employeeexpenseservice.EmployeeExpenseServiceGrpc.EmployeeExpenseServiceStub;
-
+import com.google.protobuf.ByteString;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
+import io.grpc.stub.StreamObserver;
 
 import java.awt.Font;
+import java.awt.TextArea;
 import java.awt.Window;
 
 import javax.swing.JTextArea;
@@ -61,6 +83,7 @@ import java.awt.Dimension;
 
 import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileSystemView;
 import javax.swing.JPanel;
 
 public class MainGUIController2 implements ActionListener{
@@ -68,16 +91,19 @@ public class MainGUIController2 implements ActionListener{
 	private static ServiceInfo authenticationServicesInfo; 
 	private static ServiceInfo empServiceInfo;
 	private static AuthenticationServicesBlockingStub blockingStub;
-	private static AuthenticationServicesStub asyncStub;
+	private static EmployeeExpenseServiceStub asyncStub;
 	
-	private static JFrame servicesPanelFrame, Loginframe, empExpenseServicesFrame, unaryExpClaimFrame;
+	private static JFrame servicesPanelFrame, Loginframe, empExpenseServicesFrame, unaryExpClaimFrame, biDiExpClaimFrame, uploadExpRecFrame, expenseStatusFrame;
 	private static JTextField usernameText, amountBox, passwordText;
+	private static JTextField filePath;
 	private static JTextArea serverResp;
 	private static JButton addSingleExpense, addMultiExpense, uploadExpenseReceipts, checkPreviousClaims, expenseButton, bookingButton;
-
+	private static JFileChooser fileChooser;
+	private static int addExpense = 0;
+	private static String location;
 	private int respCode = -1;
 	int loginOK = -1;
-	
+	private static JButton logoutButton;
 /*	
  * DONE: LOGIN (CLIENT/GUI)
  * DONE: SINGLE EXPENSE CLAIM (CLIENT/GUI)
@@ -216,7 +242,7 @@ public class MainGUIController2 implements ActionListener{
 				System.out.println(response.getResponseMessage());
 				respCode = response.getResponseCode(); 
 				System.out.println(response.getResponseCode());
-			
+				
 				JOptionPane.showMessageDialog(null, response.getResponseMessage());
 				
 				try {
@@ -240,7 +266,7 @@ public class MainGUIController2 implements ActionListener{
 			}
 		});
 		
-		JButton logoutButton = new JButton("Logout");
+		logoutButton = new JButton("Logout");
 		logoutButton.setFont(new Font("Tahoma", Font.BOLD, 13));
 		logoutButton.setBounds(264, 166, 112, 33);
 		Loginframe.getContentPane().add(logoutButton);
@@ -296,38 +322,48 @@ public class MainGUIController2 implements ActionListener{
 		
 		private JPanel empExpenseServices() {
 			
-			JPanel expensePanel = new JPanel();
-			expensePanel.setLayout(new BoxLayout(expensePanel, BoxLayout.PAGE_AXIS));
-			
 			empExpenseServicesFrame = new JFrame();
 			empExpenseServicesFrame.setTitle("Employee Services: ");
-			empExpenseServicesFrame.setSize(400, 250);
+			empExpenseServicesFrame.setBounds(100, 100, 492, 480);
 			empExpenseServicesFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			
+			JPanel expensePanel = new JPanel();
+			expensePanel.setLayout(null);
+			expensePanel.setVisible(true);
 			empExpenseServicesFrame.add(expensePanel);
 			
-			expensePanel.add(Box.createRigidArea(new Dimension(30,30)));
+			//expensePanel.add(Box.createRigidArea(new Dimension(30,30)));
 			addSingleExpense = new JButton("Add One Expense Claim");
-			addSingleExpense.setBounds(210, 80, 80, 80);
+			addSingleExpense.setBounds(104, 115, 255, 63);
 			expensePanel.add(addSingleExpense);
 			addSingleExpense.addActionListener(this);
 		
-			expensePanel.add(Box.createRigidArea(new Dimension(10,10)));
+			//expensePanel.add(Box.createRigidArea(new Dimension(10,10)));
 			addMultiExpense = new JButton("Add Multiple Expense Claims");
-			addMultiExpense.setBounds(210, 80, 80, 80);
+			addMultiExpense.setBounds(104, 29, 255, 63);
 			expensePanel.add(addMultiExpense);
 			addMultiExpense.addActionListener(this);
 			
-			expensePanel.add(Box.createRigidArea(new Dimension(10,10)));
+			//expensePanel.add(Box.createRigidArea(new Dimension(10,10)));
 			uploadExpenseReceipts = new JButton("Upload Expense Receipts");
-			uploadExpenseReceipts.setBounds(210, 80, 80, 80);
+			uploadExpenseReceipts.setBounds(104, 205, 255, 63);
 			expensePanel.add(uploadExpenseReceipts);
-			addMultiExpense.addActionListener(this);
+			uploadExpenseReceipts.addActionListener(this);
 			
-			expensePanel.add(Box.createRigidArea(new Dimension(10,10)));
-			checkPreviousClaims = new JButton("Check Status of Previous Expense Claims");
-			checkPreviousClaims.setBounds(210, 80, 80, 80);
+			//expensePanel.add(Box.createRigidArea(new Dimension(10,10)));
+			checkPreviousClaims = new JButton("Expense Claims Status");
+			checkPreviousClaims.setBounds(104, 293, 255, 63);
 			expensePanel.add(checkPreviousClaims);
-			addMultiExpense.addActionListener(this);
+			checkPreviousClaims.addActionListener(this);
+			
+			JButton backBtn = new JButton("Back");
+			backBtn.setBounds(349, 380, 102, 38);
+			expensePanel.add(backBtn);
+			backBtn.addActionListener(this);
+			
+//			logoutButton = new JButton("Logout");
+//			logoutButton.setBounds(30, 380, 102, 38);
+//			expensePanel.add(logoutButton);
 			
 			return expensePanel;
 		}
@@ -339,19 +375,29 @@ public class MainGUIController2 implements ActionListener{
 			JButton button = (JButton)e.getSource();
 			String label = button.getActionCommand();
 			
-			
-			
-			
 			if(label.equals("Add One Expense Claim")) {
 				System.out.println("Add Single Expense Claim Loading...");
 				empExpenseServicesFrame.dispose();
-				
 				singleExpenseClaimPanel();
 				
+			}if(label.equals("Add Multiple Expense Claims")) {
+				System.out.println("Add Multiple Expense Claims Loading...");
+				empExpenseServicesFrame.dispose();
+				multiExpensePanel();
 				
+			}if(label.equals("Upload Expense Receipts")) {
+				System.out.println("Upload Expense Receipts Loading...");
+				empExpenseServicesFrame.dispose();
+				uploadExpReceiptPanel();
 				
-
+			}if(label.equals("Expense Claims Status")) {
+				System.out.println("Check Expense Claims Status Loading...");
+				empExpenseServicesFrame.dispose();
+				expenseClaimStatusPanel();
 				
+			}else if(label.equals("Back")) {
+				empExpenseServicesFrame.dispose();
+				servicesPanelFrame.setVisible(true);
 				
 			}
 			
@@ -398,7 +444,6 @@ public class MainGUIController2 implements ActionListener{
 			amountBox.setColumns(10);
 
 			
-			
 			JLabel amountLabel = new JLabel(" Claim amount : ");
 			amountLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
 			amountLabel.setBounds(47, 132, 143, 32);
@@ -415,42 +460,24 @@ public class MainGUIController2 implements ActionListener{
 			
 			sendBtn.addActionListener(new ActionListener(){
 				public void actionPerformed(ActionEvent a) {
-					
 				
-	//--TO DO ------------------------------------------------------------CHANGE PORT NUMBER
-					ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 60600).usePlaintext().build();
+					ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50052).usePlaintext().build();
 					EmployeeExpenseServiceGrpc.EmployeeExpenseServiceBlockingStub blockingStub = EmployeeExpenseServiceGrpc.newBlockingStub(channel);
-//					try {
 						
 						double totalAmt;
 
-//					}catch(NumberFormatException ie) {
-//						serverResp.append("");
-//					}
-						
 						try {
-						totalAmt = Double.parseDouble(amountBox.getText());
+							totalAmt = Double.parseDouble(amountBox.getText());
 	
-			
-					
-					String department = deptOptionsBox.getSelectedItem().toString();
-					String expenseType = expTypeOptBox.getSelectedItem().toString();
-					int expenseClaimNo;
+							String department = deptOptionsBox.getSelectedItem().toString();
+							String expenseType = expTypeOptBox.getSelectedItem().toString();
+							int expenseClaimNo;
 				
-					Random ran = new Random();
-					expenseClaimNo = ran.nextInt((100000 - 10) + 1)+ 10;
+							Random ran = new Random();
+							expenseClaimNo = ran.nextInt((100000 - 10) + 1)+ 10;
 					
 					
-					
-//					String doubString = String.valueOf(totalAmt);
-//					final String isPrice = "^\\d{0,8}(\\.\\d{1,4})?$";
-//					Pattern pat = Pattern.compile(isPrice);
-//					Matcher matcher = pat.matcher(doubString);
-//					if(matcher.matches()) {
-					
-					
-					
-						AddExpenseClaimRequest req = AddExpenseClaimRequest.newBuilder()
+							AddExpenseClaimRequest req = AddExpenseClaimRequest.newBuilder()
 								.setExpenseClaimNo(expenseClaimNo)
 								.setDepartment(department)
 								.setExpenseType(expenseType)
@@ -458,24 +485,24 @@ public class MainGUIController2 implements ActionListener{
 								.build();
 						
 
-				
-						AddExpenseClaimResponse response = blockingStub.addExpenseClaim(req);
+							AddExpenseClaimResponse response = blockingStub.addExpenseClaim(req);
 
-						try {
-							Thread.sleep(1000);
-							serverResp.setForeground(Color.BLACK);
-							serverResp.append(response.getClaimResult());
-							System.out.println(response.getClaimResult());
-						}catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-					}catch(NumberFormatException fe) {
-						serverResp.setForeground(Color.RED);
+							try {
+								Thread.sleep(1000);
+								serverResp.setForeground(Color.BLACK);
+								serverResp.append(response.getClaimResult());
+								System.out.println(response.getClaimResult());
+							}catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+							
+						}catch(NumberFormatException fe) {
+							serverResp.setForeground(Color.RED);
 						
-						serverResp.append("\n ERROR: Please enter a valid amount \n");
-					}	
-				}
-			});
+							serverResp.append("\n ERROR: Please enter a valid amount \n");
+						}	
+					}
+				});
 
 			serverResp = new JTextArea();
 			serverResp.setEditable(false);
@@ -501,32 +528,483 @@ public class MainGUIController2 implements ActionListener{
 				}
 					
 			});
-
-			
-	}
-
-		
-		public static void checkInput(JTextField input) {
-			int valid = -1;
-//			final String isInt = "^-?\\\\d+$";	
-//			final String isDouble = "^-?\\d+(\\.\\d+)?$";
-			final String isPrice = "^\\d{0,8}(\\.\\d{1,4})?$";
-			if(Pattern.matches(isPrice, (CharSequence) input)) {
-				valid = 0;
-			}else
-				valid = 1;			
 		}
 
-	
+		
+		public static void multiExpensePanel() {
+			
+			biDiExpClaimFrame = new JFrame("Add an Expense Claim");
+			biDiExpClaimFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			biDiExpClaimFrame.setBounds(100, 100, 671, 619);
+			biDiExpClaimFrame.setVisible(true);
+			
+			JPanel biDiExpClaimPanel = new JPanel();
+			biDiExpClaimFrame.add(biDiExpClaimPanel);
+			biDiExpClaimPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+			biDiExpClaimPanel.setLayout(null);
+			biDiExpClaimPanel.setVisible(true);
+
+			
+			String[] deptOptions = {"IT","Sales","Marketing","HR","Finance","Logistics","Purchasing"};
+			final JComboBox<String> deptOptionsBox = new JComboBox<String>(deptOptions);
+			deptOptionsBox.setBounds(229, 29, 229, 32);
+			biDiExpClaimPanel.add(deptOptionsBox);
+			
+			JLabel departmentLabel = new JLabel(" Select Department : ");
+			departmentLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
+			departmentLabel.setBounds(47, 29, 143, 32);
+			biDiExpClaimPanel.add(departmentLabel);
+			
+			
+			String[] expenseTypeOptions = {"Catering","Stationary","Cleaning","Equipment","Travel","Misc"};
+			final JComboBox<String> expTypeOptBox = new JComboBox<String>(expenseTypeOptions);
+			expTypeOptBox.setBounds(229, 78, 229, 32);
+			biDiExpClaimPanel.add(expTypeOptBox);
+			
+			JLabel expenseTypeLabel = new JLabel(" Select Expense Type : ");
+			expenseTypeLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
+			expenseTypeLabel.setBounds(47, 78, 143, 32);
+			biDiExpClaimPanel.add(expenseTypeLabel);
+			
+			amountBox = new JTextField();
+			amountBox.setBounds(229, 132, 136, 32);
+			biDiExpClaimPanel.add(amountBox);
+			amountBox.setColumns(10);
+
+			
+			JLabel amountLabel = new JLabel(" Claim amount : ");
+			amountLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
+			amountLabel.setBounds(47, 132, 143, 32);
+			biDiExpClaimPanel.add(amountLabel);
+			
+			
+			JButton addBtn = new JButton("Add");
+			addBtn.setBounds(72, 281, 102, 38);
+			biDiExpClaimPanel.add(addBtn);
+			
+			JButton finshBtn = new JButton("Finish");
+			finshBtn.setBounds(235, 281, 102, 38);
+			biDiExpClaimPanel.add(finshBtn);
+			
+			JButton backBtn = new JButton(" Back ");
+			backBtn.setBounds(416, 281, 102, 38);
+			biDiExpClaimPanel.add(backBtn);
+			
+			backBtn.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					biDiExpClaimFrame.dispose();
+					empExpenseServicesFrame.setVisible(true);
+				}
+			});
+			
+			
+			addBtn.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent a) {
+					
+					finshBtn.addActionListener(new ActionListener(){
+						public void actionPerformed(ActionEvent a) {
+							addExpense = 1;
+							
+						}
+					});
+					
+				
+					ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50052).usePlaintext().build();
+					//EmployeeExpenseServiceGrpc.EmployeeExpenseServiceStub asyncStub = EmployeeExpenseServiceGrpc.newStub(channel);
+					asyncStub = EmployeeExpenseServiceGrpc.newStub(channel);
+					CountDownLatch latch = new CountDownLatch(1);
+					
+					StreamObserver<AddMultiExpenseClaimResponse> responseObserver = new StreamObserver <AddMultiExpenseClaimResponse>() {
+						int count = 0;
+						double runningTotal = 0.0;
+						DecimalFormat df = new DecimalFormat("###.##");
+						
+						@Override
+						public void onNext(AddMultiExpenseClaimResponse res) {
+							try {
+								runningTotal = res.getRunningTotal();
+								Thread.sleep(0);
+								System.out.println("Sending expense claim : " + "Total amount sent : "+ df.format(runningTotal));
+								System.out.println(res.getClaimResult());
+								
+								serverResp.append("Total amount sent : " + res.getRunningTotal());
+								serverResp.append("Claim status : " + res.getClaimResult());
+								
+								count += 1;
+								System.out.println("------------------------------------------------");
+								
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+
+						}
+						
+						@Override
+						public void onError(Throwable t) {
+							System.out.println("ERROR - Client=side - multi-expense");
+							serverResp.append("ERROR - WRITTEN Client=side - multi-expense");
+							t.printStackTrace();
+							latch.countDown();
+						}
+						
+						@Override
+						public void onCompleted() {
+							serverResp.append("... received " + count + " expense requests" + " Total amount sent : " + df.format(runningTotal));
+							System.out.println("Expenses sent!");
+							System.out.println("... received " + count + " expense requests" + " Total amount sent : " + df.format(runningTotal));
+							latch.countDown();
+						}
+					};
+					
+					StreamObserver<AddMultiExpenseClaimRequest> requestObserver = asyncStub.addMultiExpenseClaim(responseObserver);
+					
+					double totalAmt;
+					try {
+						try {
+							//do {
+								totalAmt = Double.parseDouble(amountBox.getText());
+
+								String department = deptOptionsBox.getSelectedItem().toString();
+								String expenseType = expTypeOptBox.getSelectedItem().toString();
+								int expenseClaimNo;
+			
+								Random ran = new Random();
+								expenseClaimNo = ran.nextInt((100000 - 10) + 1)+ 10;
+					
+					
+					
+								expenseClaimNo = ran.nextInt((100000 - 10) + 1)+ 10;
+							
+								requestObserver.onNext(AddMultiExpenseClaimRequest.newBuilder()
+									.setExpenseClaimNo(expenseClaimNo)
+									.setDepartment(department)
+									.setExpenseType(expenseType)
+									.setAmount(totalAmt)
+									.build());
+							
+							
+								try {
+									Thread.sleep(1000);
+								}catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+							
+							//}while(addExpense == 1);
+							
+						System.out.println("Loading......");
+						requestObserver.onCompleted();
+						
+						
+						finshBtn.addActionListener(new ActionListener(){
+							public void actionPerformed(ActionEvent a) {
+								
+								requestObserver.onCompleted();
+						
+								
+							}
+								
+								
+						});
+
+						//requestObserver.onCompleted();
+						
+						try {
+							latch.await(3, TimeUnit.SECONDS);
+						} catch (InterruptedException e1) {
+							e1.printStackTrace();
+						}
+						
+					}catch(NumberFormatException fe) {
+						serverResp.setForeground(Color.RED);
+						serverResp.append("\n ERROR: Please enter a valid amount \n");
+					}
+						
+				}catch (RuntimeException e) {
+					e.printStackTrace();
+				}
+			}
+			
+					
+		});
+			
+			serverResp = new JTextArea();
+			serverResp.setEditable(false);
+			serverResp.setLineWrap(true);
+			serverResp.setWrapStyleWord(true);
+			serverResp.setBackground(UIManager.getColor("Button.background"));
+			serverResp.setForeground(Color.BLACK);
+			
+			JScrollPane scrollPane = new JScrollPane(serverResp);
+			scrollPane.setBackground(UIManager.getColor("Button.background"));
+			scrollPane.setBounds(36, 291, 450, 124);
+			scrollPane.setBorder(null);
+			
+			biDiExpClaimPanel.add(scrollPane);
+			
+			
+			
+		}
 		
 		
+		public static void uploadExpReceiptPanel() {
+			
+			uploadExpRecFrame = new JFrame("Upload expense Receipt");
+			uploadExpRecFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			uploadExpRecFrame.setBounds(100, 100, 755, 520);
+			uploadExpRecFrame.setVisible(true);
+			
+			JPanel uploadExpRecPanel = new JPanel();
+			uploadExpRecFrame.add(uploadExpRecPanel);
+			uploadExpRecPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+			uploadExpRecPanel.setLayout(null);
+			uploadExpRecPanel.setVisible(true);
+			
+			JButton chooseFileBtn = new JButton("Choose File");
+			chooseFileBtn.setBounds(24, 95, 114, 34);
+			uploadExpRecPanel.add(chooseFileBtn);
+			
+			JButton uploadBtn = new JButton ("Upload");
+			uploadBtn.setBounds(290, 160, 114, 34);
+			uploadExpRecPanel.add(uploadBtn);
+			
+			JButton backBtn2 = new JButton("Back");
+			backBtn2.setBounds(615, 11, 114, 34);
+			uploadExpRecPanel.add(backBtn2);
+			backBtn2.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent e) {
+					uploadExpRecFrame.dispose();
+					empExpenseServicesFrame.setVisible(true);
+					
+				}
+			});
+			
+			
+			JProgressBar progressBar = new JProgressBar();
+			progressBar.setBounds(227, 205, 234, 25);
+			progressBar.setValue(0);
+			
+			progressBar.setStringPainted(true);
+			uploadExpRecPanel.add(progressBar);
+			
+			filePath = new JTextField();
+			filePath.setBounds(148, 100, 581, 25);
+			uploadExpRecPanel.add(filePath);
+			filePath.setColumns(10);
+			filePath.setText("No file selected");
+
+			chooseFileBtn.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent a) {
+					File f = new File("src\\main\\resources\\uploadTest\\");
+					JFileChooser fileChooser = new JFileChooser(f, FileSystemView.getFileSystemView());
+					
+					int fc = fileChooser.showOpenDialog(null);
+					if(fc == JFileChooser.APPROVE_OPTION) {
+						filePath.setText(fileChooser.getSelectedFile().getAbsolutePath());
+						location = fileChooser.getSelectedFile().getAbsolutePath();
+						System.out.println(location);
+						location = location.replace("\\", "\\\\");
+						System.out.println(location);
+					}else 
+						
+						filePath.setText("Cancelled");
+				}
+					
+			});
+			
+			uploadBtn.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent c) {
+					
+					serverResp.append("\nUploading....");
+					ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50052).usePlaintext().build();
+					asyncStub = EmployeeExpenseServiceGrpc.newStub(channel);
+					
+					
+					CountDownLatch latch = new CountDownLatch(1);
+					StreamObserver<UploadExpenseReceiptsResponse> responseObserver = new StreamObserver<UploadExpenseReceiptsResponse>() {
+						
+							@Override
+							public void onNext(UploadExpenseReceiptsResponse value) {
+								//response from server
+								//called once
+								
+								System.out.println("File upload status : " + value.getStatus());
+								serverResp.append("\nFILE LOCATION : " + value.getFileName());
+								serverResp.append("\nSTATUS : " + value.getStatus());
+								serverResp.append("\nSIZE " +value.getSize());
+								
+							}
+
+							@Override
+							public void onError(Throwable t) {
+								//error from the server
+								System.out.println("ERROR in file upload");
+								serverResp.append("ERROR in file upload");
+							}
+
+							@Override
+							public void onCompleted() {
+								//server is finished
+								//called right after onNext()
+								progressBar.setIndeterminate(false);
+								progressBar.setValue(100);
+								System.out.println("Finished");
+								serverResp.append("\nFinished ");
+								latch.countDown();
+							}
+							
+						};
+						
+						StreamObserver<UploadExpenseReceiptsRequest> requestObserver = asyncStub.uploadExpenseReceipts(responseObserver);
+						
+						System.out.println(location);
+						File file = new File(location);
+						if(!file.exists()) {
+							System.out.println("File does not exist");
+							return;
+						}else {
+							try {
+								long actualFileSize = file.length();
+								int chunkSize = (int) actualFileSize / 4;
+								BufferedInputStream buffIn = new BufferedInputStream(new FileInputStream(file));
+								
+								
+								int buffSize = chunkSize;
+								byte[] byteBuff = new byte[buffSize];
+								int size = 0;
+								
+								
+								
+								try {
+									while((size = buffIn.read(byteBuff) ) >0) {
+										progressBar.setIndeterminate(true);
+										ByteString bString = ByteString.copyFrom(byteBuff, 0 , (int) actualFileSize);
+
+										requestObserver.onNext(UploadExpenseReceiptsRequest.newBuilder()
+												.setData(bString)
+												.setFileName(location)
+												.setSize(size)
+												.setActualFileSize(actualFileSize)
+												.build());
+										
+										
+										System.out.println("Uploading File...");
+										
+										try {
+											Thread.sleep(1000);
+										} catch (InterruptedException e) {
+											// TODO Auto-generated catch block
+											e.printStackTrace();
+										}
+										
+									}
+									//progressBar.setIndeterminate(false);
+									requestObserver.onCompleted();
+									buffIn.close();
+									
+									
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+								
+							}catch (FileNotFoundException e) {
+								e.printStackTrace();
+							}
+							
+						try {
+							latch.await(3L, TimeUnit.SECONDS);
+						}catch(InterruptedException e) {
+							e.printStackTrace();
+						}	
+					}
+				}
+					
+			});
+			
+			
+			serverResp = new JTextArea();
+			serverResp.setEditable(false);
+			serverResp.setLineWrap(true);
+			serverResp.setWrapStyleWord(true);
+			serverResp.setBackground(UIManager.getColor("Button.background"));
+			serverResp.setForeground(Color.BLACK);
+			serverResp.setBounds(39, 268, 642, 177);
+			
+			JScrollPane scrollPane = new JScrollPane(serverResp);
+			scrollPane.setBackground(UIManager.getColor("Button.background"));
+			scrollPane.setBounds(39, 268, 642, 177);
+			scrollPane.setBorder(null);
+			uploadExpRecPanel.add(scrollPane);
+			
+		
+	}
 		
 		
+		public static void expenseClaimStatusPanel() {
+			
+			expenseStatusFrame = new JFrame("Claim Expense Status");
+			expenseStatusFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			expenseStatusFrame.setBounds(100, 100, 790, 596);
+			expenseStatusFrame.setVisible(true);
+			
+			JPanel expStatusPanel = new JPanel();
+			expStatusPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+			expStatusPanel.setLayout(null);
+			expStatusPanel.setVisible(true);
+			expenseStatusFrame.add(expStatusPanel);
+			
+			JButton expenseStatusBtn = new JButton("Claim Status : ");
+			expenseStatusBtn.setBounds(260, 32, 248, 39);
+			expStatusPanel.add(expenseStatusBtn);
+			
+			expenseStatusBtn.addActionListener(new ActionListener() {
+				public void actionPerformed(ActionEvent a) {
+					
+			
+			ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50052).usePlaintext().build();
+			EmployeeExpenseServiceBlockingStub blockingStub = EmployeeExpenseServiceGrpc.newBlockingStub(channel);
+			
+			
+			int checkExpenses =1;
+				CheckExpenseClaimRequest req = CheckExpenseClaimRequest.newBuilder()
+						.setCheckAllExpenses(checkExpenses).build();
+				
+				try {
+					Iterator<CheckExpenseClaimResponse> response = blockingStub.checkExpenseClaim(req);
+					while(response.hasNext()) {
+						CheckExpenseClaimResponse res = response.next();
+						System.out.println("Claim no : " + res.getClaimNumber() + " || " +  "Amount : €" + res.getAmount() + " || " + "Status : " + res.getStatus());
+						serverResp.append("Claim no : " + res.getClaimNumber() + " || " +  "Amount : €" + res.getAmount() + " || " + "Status : " + res.getStatus());
+						
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						
+					}
+				}catch(StatusRuntimeException e) {
+					e.printStackTrace();
+				}
+				}
+			});
+				
+				serverResp = new JTextArea();
+				serverResp.setEditable(false);
+				serverResp.setLineWrap(true);
+				serverResp.setWrapStyleWord(true);
+				serverResp.setBackground(UIManager.getColor("Button.background"));
+				serverResp.setForeground(Color.BLACK);
+				serverResp.setBounds(10, 104, 754, 442);
+				
+				JScrollPane scrollPane = new JScrollPane(serverResp);
+				//scrollPane.setBackground(UIManager.getColor("Button.background"));
+				scrollPane.setBounds(10, 104, 754, 442);
+				scrollPane.setBorder(null);
+				expStatusPanel.add(scrollPane);
+			}
+			
 		
-		
-		
-		
-	
 	
 	private void discoverAuthenticationServices(String service_type) {
 		System.out.println("discoverAuthenticationServices");

@@ -146,7 +146,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 			
 			@Override
 			public void onNext(AddMultiExpenseClaimRequest req) {
-				Double currentAmount = req.getAmount();
+				currentAmount = req.getAmount();
 				//String claimResult;
 				runningTotal = currentAmount + runningTotal;
 				
@@ -225,8 +225,6 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 	public StreamObserver<UploadExpenseReceiptsRequest> uploadExpenseReceipts(StreamObserver<UploadExpenseReceiptsResponse> responseObserver){
 		return new StreamObserver<UploadExpenseReceiptsRequest>() {
 		
-		//StreamObserver <UploadExpenseReceiptsRequest> requestObserver = new StreamObserver<UploadExpenseReceiptsRequest>() {
-			
 			byte[] data;
 			long actualSize = 0;
 			long currentSize = 0;
@@ -247,16 +245,8 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 				
 					fileName = req.getFileName();
 					status = Status.IN_PROGRESS;
-					
-					System.out.println("Receiving....");
-					System.out.println("File size " + actualSize);
-					System.out.println("tot rec" + totalRec);
-					
-					
 				}
 			
-			//System.out.println("Finished upload....");
-				
 			}
 							
 			@Override
@@ -282,13 +272,6 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 				responseObserver.onNext(response);
 				responseObserver.onCompleted();
 				
-//				
-//				System.out.println("File name: " + fileName + "size : " + size + " STATUS : " );
-//				System.out.print(status);
-//				System.out.println("File uploaded");
-				
-			
-			
 			}
 			
 		};
