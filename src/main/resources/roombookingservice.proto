@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+option java_multiple_files = true;
+option java_package = "com.dsproject.roombookingservice";
+option java_outer_classname = "RoomBookingServiceImpl";
+
+package roombookingservice;
+
+service RoomBookingService{
+	
+	
+	rpc checkAvailableRooms(CheckAvailableRoomsRequest) returns (stream CheckAvailableRoomsResponse){}
+	rpc bookRoom(BookRoomRequest) returns (BookRoomResponse){}
+	
+}
+
+	message CheckAvailableRoomsRequest{
+		string date =1;
+		string location =2;
+	}
+	
+	message CheckAvailableRoomsResponse{
+		string date =1;
+		string roomName =2;
+		string availableTimes = 3;
+	}
+	
+	
+	message BookRoomRequest{
+		string date =1;
+		string time =2;
+		int32 numAttendees =3;
+		string foodRequired = 4;
+		string drinksRequired = 5;
+	} 
+	
+	message BookRoomResponse{
+		string date =1;
+		string roomName =2;
+		string numAttendees =3;
+		string foodRequired = 4;
+		string drinksRequired = 5;
+	}

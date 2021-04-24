@@ -100,7 +100,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 		}
 	}
 	
-	
+	//UNARY
 	@Override
 	public void addExpenseClaim(AddExpenseClaimRequest request, StreamObserver<AddExpenseClaimResponse> responseObserver) {
 		String department = request.getDepartment();
@@ -131,7 +131,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 		responseObserver.onCompleted();
 	}
 	
-		
+	//BI-DIRECTIONAL	
 	public StreamObserver<AddMultiExpenseClaimRequest> addMultiExpenseClaim (StreamObserver<AddMultiExpenseClaimResponse> responseObserver){
 		return new StreamObserver<AddMultiExpenseClaimRequest>() {
 		//StreamObserver<AddMultiExpenseClaimRequest> requestObserver = new StreamObserver<AddMultiExpenseClaimRequest>() {
@@ -193,7 +193,6 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 				
 				//responseObserver.onCompleted();
 				
-				
 			}
 
 			@Override
@@ -206,9 +205,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 			@Override
 			public void onCompleted() {
 				System.out.println("Total Amount received : " + df.format(runningTotal));
-				
 				responseObserver.onCompleted();
-				
 			}
 			
 //			@Override
@@ -219,8 +216,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 		};
 	}
 	
-	
-	
+	//CLIENT STREAMING
 	@Override
 	public StreamObserver<UploadExpenseReceiptsRequest> uploadExpenseReceipts(StreamObserver<UploadExpenseReceiptsResponse> responseObserver){
 		return new StreamObserver<UploadExpenseReceiptsRequest>() {
@@ -254,7 +250,6 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 			public void onError(Throwable t) {
 				status = Status.FAILED;
 				System.out.println("ERROR - Server=side - upload file");
-				t.printStackTrace();
 				
 			}
 
@@ -271,22 +266,19 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 				System.out.println("Complete Server side ");
 				responseObserver.onNext(response);
 				responseObserver.onCompleted();
-				
 			}
 			
 		};
-		
 }
 
 
-	
+	//SERVER STREAMING
 	@Override
 	public void checkExpenseClaim(CheckExpenseClaimRequest request, StreamObserver<CheckExpenseClaimResponse> responseObserver){
 			
 			System.out.println("Checking claim requests...");
 			int checkAllExpenses = request.getCheckAllExpenses();
 			if(checkAllExpenses == 1) {
-			
 				Random ran = new Random();
 			
 				int randomAmount = ran.nextInt((50 - 1) +1) + 1;
@@ -313,10 +305,6 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 							.setAmount(ranReceiptAmount)
 							.setStatus(status)
 							.build());
-					
-					
-//					CheckExpenseClaimResponse res = CheckExpenseClaimResponse.newBuilder().setClaimNumber(claimNumber).setStatus(status).build();
-//					responseObserver.onNext(res);
 				}
 					
 			}else{

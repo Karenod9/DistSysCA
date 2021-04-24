@@ -36,7 +36,7 @@ public class EmployeeExpenseServiceClient {
 
 	public static void main(String[] args) throws IOException  {
 		ManagedChannel channel = ManagedChannelBuilder
-				.forAddress("localhost", 50051)
+				.forAddress("localhost", 50052)
 				.usePlaintext()
 				.build();
 		
@@ -45,7 +45,7 @@ public class EmployeeExpenseServiceClient {
 		//create an asynchronous client
 		asyncStub = EmployeeExpenseServiceGrpc.newStub(channel);
 		
-//		addExpenseClaim(channel);
+		addExpenseClaim(channel);
 		addMultiExpenseClaim(channel);
 //		uploadExpenseReceipts(channel);
 		//checkExpenseClaimAsync(channel);
