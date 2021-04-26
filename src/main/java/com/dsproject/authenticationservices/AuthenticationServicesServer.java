@@ -1,5 +1,10 @@
 package com.dsproject.authenticationservices;
 
+/*
+ *		DISTRIBUTED SYSTEMS PROJECT - HDSDEV_SEP 
+ *		@AUTHOR X20144148
+ */	
+
 import java.io.IOException;
 import java.util.logging.Logger;
 
@@ -81,6 +86,7 @@ public class AuthenticationServicesServer extends AuthenticationServicesImplBase
 			jmdns.registerService(serviceInfo);
 			
 			System.out.printf("registering service with type %s and name %s \n", service_type, service_name);
+			System.out.println("Service running on port : " + service_port);
 			System.out.println("Service has been registered! ");
 			
 			Thread.sleep(1000);

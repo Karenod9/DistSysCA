@@ -1,14 +1,14 @@
 package com.dsproject.employeeexpenseservice;
 
+/*
+ *		DISTRIBUTED SYSTEMS PROJECT - HDSDEV_SEP 
+ *		@AUTHOR X20144148
+ */	
+
+
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.net.InetAddress;
 import java.util.Properties;
@@ -23,10 +23,6 @@ import com.dsproject.employeeexpenseservice.EmployeeExpenseServiceGrpc.EmployeeE
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
-
-import java.io.BufferedOutputStream;
-import java.io.File;
-
 
 	
 public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase {
@@ -187,9 +183,9 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 					
 				}
 				
-				System.out.println("Receiving expense requests : " +"\nExpense Claim No = " + req.getExpenseClaimNo() 
-				+ "\nDepartment  = " + req.getDepartment() +"\nExpense Type = " + req.getExpenseType() +"\nReceipt amount = " + req.getAmount());
-				System.out.println("-------------------------------------------------");
+//				System.out.println("Receiving expense requests : " +"\nExpense Claim No = " + req.getExpenseClaimNo() 
+//				+ "\nDepartment  = " + req.getDepartment() +"\nExpense Type = " + req.getExpenseType() +"\nReceipt amount = " + req.getAmount());
+//				System.out.println("-------------------------------------------------");
 				
 				//responseObserver.onCompleted();
 				
@@ -308,7 +304,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 				}
 					
 			}else{
-				System.out.println("not 1");
+				System.out.println("Error on client side.");
 			}
 			System.out.println("All claims sent!");
 			responseObserver.onCompleted();

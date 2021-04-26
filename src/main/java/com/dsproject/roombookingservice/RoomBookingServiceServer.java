@@ -1,5 +1,11 @@
 package com.dsproject.roombookingservice;
 
+/*
+ *		DISTRIBUTED SYSTEMS PROJECT - HDSDEV_SEP 
+ *		@AUTHOR X20144148
+ */	
+
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -113,11 +119,9 @@ public class RoomBookingServiceServer extends RoomBookingServiceImplBase {
 		
 		String availableTimes;
 		Random ran = new Random();
-		int randomAvailableRooms = ran.nextInt((50 - 1) +1) + 1;
+		int randomAvailableRooms = ran.nextInt((30 - 1) +1) + 1;
 		try {
 		for(int i=0; i<randomAvailableRooms; i++) {
-			
-				System.out.println("RandomVailRoom" + randomAvailableRooms);
 				availableTimes = generateRandomTime();
 				String roomName = generateRandomRoomName();
 				
