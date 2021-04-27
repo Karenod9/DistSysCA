@@ -19,8 +19,7 @@ private static final long serialVersionUID = 0L;
     date_ = "";
     time_ = "";
     numAttendees_ = 0;
-    foodRequired_ = "";
-    drinksRequired_ = "";
+    cateringRequired_ = "";
   }
 
   @java.lang.Override
@@ -67,13 +66,7 @@ private static final long serialVersionUID = 0L;
           case 34: {
             java.lang.String s = input.readStringRequireUtf8();
 
-            foodRequired_ = s;
-            break;
-          }
-          case 42: {
-            java.lang.String s = input.readStringRequireUtf8();
-
-            drinksRequired_ = s;
+            cateringRequired_ = s;
             break;
           }
           default: {
@@ -185,68 +178,34 @@ private static final long serialVersionUID = 0L;
     return numAttendees_;
   }
 
-  public static final int FOODREQUIRED_FIELD_NUMBER = 4;
-  private volatile java.lang.Object foodRequired_;
+  public static final int CATERINGREQUIRED_FIELD_NUMBER = 4;
+  private volatile java.lang.Object cateringRequired_;
   /**
-   * <code>string foodRequired = 4;</code>
+   * <code>string cateringRequired = 4;</code>
    */
-  public java.lang.String getFoodRequired() {
-    java.lang.Object ref = foodRequired_;
+  public java.lang.String getCateringRequired() {
+    java.lang.Object ref = cateringRequired_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
       com.google.protobuf.ByteString bs = 
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
-      foodRequired_ = s;
+      cateringRequired_ = s;
       return s;
     }
   }
   /**
-   * <code>string foodRequired = 4;</code>
+   * <code>string cateringRequired = 4;</code>
    */
   public com.google.protobuf.ByteString
-      getFoodRequiredBytes() {
-    java.lang.Object ref = foodRequired_;
+      getCateringRequiredBytes() {
+    java.lang.Object ref = cateringRequired_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      foodRequired_ = b;
-      return b;
-    } else {
-      return (com.google.protobuf.ByteString) ref;
-    }
-  }
-
-  public static final int DRINKSREQUIRED_FIELD_NUMBER = 5;
-  private volatile java.lang.Object drinksRequired_;
-  /**
-   * <code>string drinksRequired = 5;</code>
-   */
-  public java.lang.String getDrinksRequired() {
-    java.lang.Object ref = drinksRequired_;
-    if (ref instanceof java.lang.String) {
-      return (java.lang.String) ref;
-    } else {
-      com.google.protobuf.ByteString bs = 
-          (com.google.protobuf.ByteString) ref;
-      java.lang.String s = bs.toStringUtf8();
-      drinksRequired_ = s;
-      return s;
-    }
-  }
-  /**
-   * <code>string drinksRequired = 5;</code>
-   */
-  public com.google.protobuf.ByteString
-      getDrinksRequiredBytes() {
-    java.lang.Object ref = drinksRequired_;
-    if (ref instanceof java.lang.String) {
-      com.google.protobuf.ByteString b = 
-          com.google.protobuf.ByteString.copyFromUtf8(
-              (java.lang.String) ref);
-      drinksRequired_ = b;
+      cateringRequired_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
@@ -276,11 +235,8 @@ private static final long serialVersionUID = 0L;
     if (numAttendees_ != 0) {
       output.writeInt32(3, numAttendees_);
     }
-    if (!getFoodRequiredBytes().isEmpty()) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, foodRequired_);
-    }
-    if (!getDrinksRequiredBytes().isEmpty()) {
-      com.google.protobuf.GeneratedMessageV3.writeString(output, 5, drinksRequired_);
+    if (!getCateringRequiredBytes().isEmpty()) {
+      com.google.protobuf.GeneratedMessageV3.writeString(output, 4, cateringRequired_);
     }
     unknownFields.writeTo(output);
   }
@@ -301,11 +257,8 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeInt32Size(3, numAttendees_);
     }
-    if (!getFoodRequiredBytes().isEmpty()) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, foodRequired_);
-    }
-    if (!getDrinksRequiredBytes().isEmpty()) {
-      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(5, drinksRequired_);
+    if (!getCateringRequiredBytes().isEmpty()) {
+      size += com.google.protobuf.GeneratedMessageV3.computeStringSize(4, cateringRequired_);
     }
     size += unknownFields.getSerializedSize();
     memoizedSize = size;
@@ -329,10 +282,8 @@ private static final long serialVersionUID = 0L;
         .equals(other.getTime());
     result = result && (getNumAttendees()
         == other.getNumAttendees());
-    result = result && getFoodRequired()
-        .equals(other.getFoodRequired());
-    result = result && getDrinksRequired()
-        .equals(other.getDrinksRequired());
+    result = result && getCateringRequired()
+        .equals(other.getCateringRequired());
     result = result && unknownFields.equals(other.unknownFields);
     return result;
   }
@@ -350,10 +301,8 @@ private static final long serialVersionUID = 0L;
     hash = (53 * hash) + getTime().hashCode();
     hash = (37 * hash) + NUMATTENDEES_FIELD_NUMBER;
     hash = (53 * hash) + getNumAttendees();
-    hash = (37 * hash) + FOODREQUIRED_FIELD_NUMBER;
-    hash = (53 * hash) + getFoodRequired().hashCode();
-    hash = (37 * hash) + DRINKSREQUIRED_FIELD_NUMBER;
-    hash = (53 * hash) + getDrinksRequired().hashCode();
+    hash = (37 * hash) + CATERINGREQUIRED_FIELD_NUMBER;
+    hash = (53 * hash) + getCateringRequired().hashCode();
     hash = (29 * hash) + unknownFields.hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -493,9 +442,7 @@ private static final long serialVersionUID = 0L;
 
       numAttendees_ = 0;
 
-      foodRequired_ = "";
-
-      drinksRequired_ = "";
+      cateringRequired_ = "";
 
       return this;
     }
@@ -526,8 +473,7 @@ private static final long serialVersionUID = 0L;
       result.date_ = date_;
       result.time_ = time_;
       result.numAttendees_ = numAttendees_;
-      result.foodRequired_ = foodRequired_;
-      result.drinksRequired_ = drinksRequired_;
+      result.cateringRequired_ = cateringRequired_;
       onBuilt();
       return result;
     }
@@ -587,12 +533,8 @@ private static final long serialVersionUID = 0L;
       if (other.getNumAttendees() != 0) {
         setNumAttendees(other.getNumAttendees());
       }
-      if (!other.getFoodRequired().isEmpty()) {
-        foodRequired_ = other.foodRequired_;
-        onChanged();
-      }
-      if (!other.getDrinksRequired().isEmpty()) {
-        drinksRequired_ = other.drinksRequired_;
+      if (!other.getCateringRequired().isEmpty()) {
+        cateringRequired_ = other.cateringRequired_;
         onChanged();
       }
       this.mergeUnknownFields(other.unknownFields);
@@ -788,140 +730,71 @@ private static final long serialVersionUID = 0L;
       return this;
     }
 
-    private java.lang.Object foodRequired_ = "";
+    private java.lang.Object cateringRequired_ = "";
     /**
-     * <code>string foodRequired = 4;</code>
+     * <code>string cateringRequired = 4;</code>
      */
-    public java.lang.String getFoodRequired() {
-      java.lang.Object ref = foodRequired_;
+    public java.lang.String getCateringRequired() {
+      java.lang.Object ref = cateringRequired_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        foodRequired_ = s;
+        cateringRequired_ = s;
         return s;
       } else {
         return (java.lang.String) ref;
       }
     }
     /**
-     * <code>string foodRequired = 4;</code>
+     * <code>string cateringRequired = 4;</code>
      */
     public com.google.protobuf.ByteString
-        getFoodRequiredBytes() {
-      java.lang.Object ref = foodRequired_;
+        getCateringRequiredBytes() {
+      java.lang.Object ref = cateringRequired_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        foodRequired_ = b;
+        cateringRequired_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>string foodRequired = 4;</code>
+     * <code>string cateringRequired = 4;</code>
      */
-    public Builder setFoodRequired(
+    public Builder setCateringRequired(
         java.lang.String value) {
       if (value == null) {
     throw new NullPointerException();
   }
   
-      foodRequired_ = value;
+      cateringRequired_ = value;
       onChanged();
       return this;
     }
     /**
-     * <code>string foodRequired = 4;</code>
+     * <code>string cateringRequired = 4;</code>
      */
-    public Builder clearFoodRequired() {
+    public Builder clearCateringRequired() {
       
-      foodRequired_ = getDefaultInstance().getFoodRequired();
+      cateringRequired_ = getDefaultInstance().getCateringRequired();
       onChanged();
       return this;
     }
     /**
-     * <code>string foodRequired = 4;</code>
+     * <code>string cateringRequired = 4;</code>
      */
-    public Builder setFoodRequiredBytes(
+    public Builder setCateringRequiredBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) {
     throw new NullPointerException();
   }
   checkByteStringIsUtf8(value);
       
-      foodRequired_ = value;
-      onChanged();
-      return this;
-    }
-
-    private java.lang.Object drinksRequired_ = "";
-    /**
-     * <code>string drinksRequired = 5;</code>
-     */
-    public java.lang.String getDrinksRequired() {
-      java.lang.Object ref = drinksRequired_;
-      if (!(ref instanceof java.lang.String)) {
-        com.google.protobuf.ByteString bs =
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        drinksRequired_ = s;
-        return s;
-      } else {
-        return (java.lang.String) ref;
-      }
-    }
-    /**
-     * <code>string drinksRequired = 5;</code>
-     */
-    public com.google.protobuf.ByteString
-        getDrinksRequiredBytes() {
-      java.lang.Object ref = drinksRequired_;
-      if (ref instanceof String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        drinksRequired_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-    /**
-     * <code>string drinksRequired = 5;</code>
-     */
-    public Builder setDrinksRequired(
-        java.lang.String value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  
-      drinksRequired_ = value;
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>string drinksRequired = 5;</code>
-     */
-    public Builder clearDrinksRequired() {
-      
-      drinksRequired_ = getDefaultInstance().getDrinksRequired();
-      onChanged();
-      return this;
-    }
-    /**
-     * <code>string drinksRequired = 5;</code>
-     */
-    public Builder setDrinksRequiredBytes(
-        com.google.protobuf.ByteString value) {
-      if (value == null) {
-    throw new NullPointerException();
-  }
-  checkByteStringIsUtf8(value);
-      
-      drinksRequired_ = value;
+      cateringRequired_ = value;
       onChanged();
       return this;
     }

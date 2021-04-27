@@ -17,8 +17,11 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 import java.util.Random;
 import java.util.logging.Logger;
@@ -39,7 +42,7 @@ public class RoomBookingServiceServer extends RoomBookingServiceImplBase {
 	private static final Logger logger = Logger.getLogger(RoomBookingServiceServer.class.getName());
 	
 	public static void main(String[] args) {
-		
+		//create server
 		RoomBookingServiceServer roomBookingServiceServer = new RoomBookingServiceServer();
 		
 		Properties prop = roomBookingServiceServer.getProperties();
@@ -63,7 +66,7 @@ public class RoomBookingServiceServer extends RoomBookingServiceImplBase {
 		}
 
 	}
-	
+	//get jmdns properties
 	private Properties getProperties() {
 		Properties prop = null;
 		try(InputStream input = new FileInputStream("src/main/resources/roombookingservice.properties")){
@@ -84,7 +87,7 @@ public class RoomBookingServiceServer extends RoomBookingServiceImplBase {
 			
 			
 		}
-	
+	//register jmdns services
 	private void registerService(Properties prop) {
 		try {
 			JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
@@ -107,9 +110,10 @@ public class RoomBookingServiceServer extends RoomBookingServiceImplBase {
 		}catch(InterruptedException e) {
 			e.printStackTrace();
 			
-			
 		}
 	}
+	//Check what rooms are available - Server streaming Grpc
+	//Random used to generate random times, room names and how many will be sent back to the client
 	
 	@Override
 	public void checkAvailableRooms(CheckAvailableRoomsRequest request, StreamObserver<CheckAvailableRoomsResponse> responseObserver) {
@@ -142,31 +146,65 @@ public class RoomBookingServiceServer extends RoomBookingServiceImplBase {
 				responseObserver.onCompleted();
 		}
 	}
-	
+	//Book a room - Unary grpc
+	//Used Random to generate randomly whether a room is available or not. 
+	@Override
+	public void bookRoom(BookRoomRequest request, StreamObserver<BookRoomResponse> responseObserver) {
+		String bookingConfirmation = generateRandomAvailability();
+		String available = "Available";
+		String notAvailable = "Not Available";
+		String date = request.getDate();
+		String time = request.getTime();
+		int numAttendees = request.getNumAttendees();
+		String catering = request.getCateringRequired();
+		String roomName = generateRandomRoomName();
 		
+		
+		if(bookingConfirmation.equalsIgnoreCase("Yes")) {
+			responseObserver.onNext(BookRoomResponse.newBuilder()
+					.setBookingConfirmation("A room is " + available + " and has been booked. Details are listed below : ")
+					.setRoomName("\n Room Name : " + roomName)
+					.setDate("\n Date : " + date)
+					.setTime("\n Time : " + time + "\n Number of Attendees : " )
+					.setNumAttendees(numAttendees)
+					.setCateringRequirements("\n Catering Required : " + catering)
+					.build());
+					
+		}else if(bookingConfirmation.equalsIgnoreCase("No")) {
+			responseObserver.onNext(BookRoomResponse.newBuilder()
+					.setBookingConfirmation("Unfortunately a room is " + notAvailable 
+							+ " for your specified date. Please choose an alternative date and try again.")
+					.build());
+		}
+		responseObserver.onCompleted();
+	}
+	
+	//METHOD TO GENERATE RANDOM AVAILABILITY
+	public static String generateRandomAvailability() {
+		String[] avail = {"Yes" , "No"};
+		String ranAvail;
+		ranAvail = avail[(int)(Math.random()*avail.length)];
+		return ranAvail;
+	}
+	
+	//METHOD TO GENERATE RANDOM DATE = NOT NEEDED NOW.
 	public static String generateRandomDate() {
 		LocalDate startDate = LocalDate.now();
 		long start = startDate.toEpochDay();
-		System.out.println(start);
 		
 		LocalDate endDate = LocalDate.of(2022, 04, 30);
 		long end = endDate.toEpochDay();
-		System.out.println(end);
 		
 		long randomDate = ThreadLocalRandom.current().longs(start, end).findAny().getAsLong();
 		LocalDate ranDate = LocalDate.ofEpochDay(randomDate);
 		
 		ranDate.format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-		//String newRanDate = ranDate.toString();
-		System.out.println(ranDate);
-		//System.out.println(newRanDate);
-		//ranDate.toString();
-
 		String formatRandomDate = ranDate.format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM));
 		
 		return formatRandomDate;
 	}
 	
+	//METHOD TO GENRATE A RANDOM ROOM NAME
 	public static String generateRandomRoomName() {
 		 String[] roomNames = {"Green Room", "Red Room" , "Apple Room" ,"Purple Room" ,"Yellow Room", "Orange Room" ,"Blue Room" ,"Plum Room"};
 		 String randomRoomName;
@@ -175,6 +213,7 @@ public class RoomBookingServiceServer extends RoomBookingServiceImplBase {
 		
 	}
 	
+	//METHOD TO GENERATE A RANDOM BLOCK OF 30 MINUTE TIMES 
 	public static String generateRandomTime() throws ParseException {
 		Random random = new Random();
 		int time = 24*60*60*10;

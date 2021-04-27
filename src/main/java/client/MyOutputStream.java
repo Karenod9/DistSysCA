@@ -10,6 +10,8 @@ import java.io.OutputStream;
 
 import javax.swing.JTextArea;
 
+// redirect console output to text area
+// needed for client, server and bidirectional streaming
 public class MyOutputStream extends OutputStream {
 	private JTextArea textArea;
 	
@@ -21,6 +23,8 @@ public class MyOutputStream extends OutputStream {
 	public void write(int b) throws IOException {
 		textArea.append(String.valueOf((char)b));
 		textArea.setCaretPosition(textArea.getDocument().getLength());
+		
+		
 		
 	}
 

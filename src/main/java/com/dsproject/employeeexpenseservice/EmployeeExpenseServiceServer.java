@@ -30,7 +30,8 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 	private static final Logger logger = Logger.getLogger(EmployeeExpenseServiceServer.class.getName());
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-
+		
+		//create server
 		EmployeeExpenseServiceServer employeeExpenseServiceServer = new EmployeeExpenseServiceServer();
 		
 		Properties prop = employeeExpenseServiceServer.getProperties();
@@ -52,7 +53,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 		}
 
 	}
-	
+	//get jmdns properties
 	private Properties getProperties() {
 		Properties prop = null;
 		try(InputStream input = new FileInputStream("src/main/resources/employeeExpenseService.properties")){
@@ -70,6 +71,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 		return prop;
 			
 	}
+	//register jmdns services
 	private void registerService(Properties prop) {
 		try {
 			JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
@@ -96,7 +98,8 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 		}
 	}
 	
-	//UNARY
+	// ADD A SINLG EXPENSE CLAIM -- UNARY GRPC
+	//IF CLAIM IS UNDER €50 APPROVE STRAIGHT AWAY - IF OVER €50 SEND TO MANAGEMENT FOR APPROVAL
 	@Override
 	public void addExpenseClaim(AddExpenseClaimRequest request, StreamObserver<AddExpenseClaimResponse> responseObserver) {
 		String department = request.getDepartment();
@@ -127,10 +130,12 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 		responseObserver.onCompleted();
 	}
 	
-	//BI-DIRECTIONAL	
+	// ADD MULTIPLE EXPENSE CLAIMS - BI-DIRECTIONAL GRPC	
+	// WILL KEEP A RUNNING TOTAL OF HOW MUCH HAS BEEN CLAIMED
+	// WILL APPROVE IF UNDER €50 IF OVER €50 WILL BE SENT TO MANAGEMENT FOR APPROVAL 
+	 
 	public StreamObserver<AddMultiExpenseClaimRequest> addMultiExpenseClaim (StreamObserver<AddMultiExpenseClaimResponse> responseObserver){
 		return new StreamObserver<AddMultiExpenseClaimRequest>() {
-		//StreamObserver<AddMultiExpenseClaimRequest> requestObserver = new StreamObserver<AddMultiExpenseClaimRequest>() {
 			Double currentAmount = 0.00;
 			double runningTotal = 0.00;
 			DecimalFormat df = new DecimalFormat("###.##");
@@ -143,7 +148,6 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 			@Override
 			public void onNext(AddMultiExpenseClaimRequest req) {
 				currentAmount = req.getAmount();
-				//String claimResult;
 				runningTotal = currentAmount + runningTotal;
 				
 				department = req.getDepartment();
@@ -158,9 +162,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 							.build();
 					
 					responseObserver.onNext(response);
-				
 				}
-				
 				else if (currentAmount >= 0.01 && currentAmount <= 50.00) {
 					AddMultiExpenseClaimResponse response = AddMultiExpenseClaimResponse.newBuilder()
 							.setClaimResult("Expense Claim No: " + expenseClaimNo + "\nDepartment : " + department + "\nExpense Type : " + expenseType + "\nAmount : " + currentAmount +
@@ -169,7 +171,6 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 							.build();
 					
 					responseObserver.onNext(response);
-					
 					
 				}else if (currentAmount > 50.00) {
 					AddMultiExpenseClaimResponse response = AddMultiExpenseClaimResponse.newBuilder()
@@ -180,21 +181,12 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 							.build();
 					
 					responseObserver.onNext(response);
-					
 				}
-				
-//				System.out.println("Receiving expense requests : " +"\nExpense Claim No = " + req.getExpenseClaimNo() 
-//				+ "\nDepartment  = " + req.getDepartment() +"\nExpense Type = " + req.getExpenseType() +"\nReceipt amount = " + req.getAmount());
-//				System.out.println("-------------------------------------------------");
-				
-				//responseObserver.onCompleted();
-				
 			}
 
 			@Override
 			public void onError(Throwable t) {
 				System.out.println("ERROR - Server=side - multi-expense");
-				//responseObserver.onCompleted();
 				t.printStackTrace();
 			}
 
@@ -212,7 +204,9 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 		};
 	}
 	
-	//CLIENT STREAMING
+	// UPLOAD EXPENSE RECEIPTS = CLIENT SIDE STREAMING GRPC
+	// FILE IS SENT IN CHUNKS
+	// ONCE THE TOTAL SIZE OF FILE MATCHES THE TOTAL RECEIVED THE CALL IS COMPLETED
 	@Override
 	public StreamObserver<UploadExpenseReceiptsRequest> uploadExpenseReceipts(StreamObserver<UploadExpenseReceiptsResponse> responseObserver){
 		return new StreamObserver<UploadExpenseReceiptsRequest>() {
@@ -238,15 +232,13 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 					fileName = req.getFileName();
 					status = Status.IN_PROGRESS;
 				}
-			
 			}
 							
 			@Override
 			//client sends an error
 			public void onError(Throwable t) {
 				status = Status.FAILED;
-				System.out.println("ERROR - Server=side - upload file");
-				
+				System.out.println("ERROR during file uploade");
 			}
 
 			@Override
@@ -268,7 +260,12 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 }
 
 
-	//SERVER STREAMING
+	// CHECK ALL EXPENSE CLAIMS STATUS - SERVER SIDE STREAMING GRPC
+	// RANDOM() USED TO GENERATE CLAIM NUMBER, NUMBER OF CLAIMS TO BE SENT TO THE CLIENT & RECEIPT AMOUNT
+	// IF RECEIPT AMOUNT IS LESS THAN €20 SET AS PAID
+	//IF RECEIPT AMOUNT IS BETWEEN €20.01 AND €50 - SET AS APPROVED 
+	//IF RECEIPT AMOUNT IS OVER €50 -  SET AS SENT FOR APPROVAL
+	//IF RECEIPT AMOUNT IS OVER €90.00 - SET AS DENIED
 	@Override
 	public void checkExpenseClaim(CheckExpenseClaimRequest request, StreamObserver<CheckExpenseClaimResponse> responseObserver){
 			
@@ -295,7 +292,6 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 						status = ClaimStatus.DENIED;
 					}		
 					
-					
 					responseObserver.onNext(CheckExpenseClaimResponse.newBuilder()
 							.setClaimNumber(claimNumber)
 							.setAmount(ranReceiptAmount)
@@ -304,7 +300,7 @@ public class EmployeeExpenseServiceServer extends EmployeeExpenseServiceImplBase
 				}
 					
 			}else{
-				System.out.println("Error on client side.");
+				System.out.println("Input error - try again");
 			}
 			System.out.println("All claims sent!");
 			responseObserver.onCompleted();

@@ -29,15 +29,17 @@ service RoomBookingService{
 	message BookRoomRequest{
 		string date =1;
 		string time =2;
-		int32 numAttendees =3;
-		string foodRequired = 4;
-		string drinksRequired = 5;
+		int32 numAttendees = 3; 
+		string cateringRequired = 4;
 	} 
-	
+
 	message BookRoomResponse{
-		string date =1;
-		string roomName =2;
-		string numAttendees =3;
-		string foodRequired = 4;
-		string drinksRequired = 5;
+		string bookingConfirmation = 1;
+		string date =2;
+		string time =3;
+		int32 numAttendees =4;
+		string cateringRequirements = 5;   
+		string roomName = 6; 
 	}
+	
+	

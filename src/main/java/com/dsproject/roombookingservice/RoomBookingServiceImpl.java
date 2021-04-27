@@ -47,21 +47,21 @@ public final class RoomBookingServiceImpl {
       "ervice\"<\n\032CheckAvailableRoomsRequest\022\014\n\004" +
       "date\030\001 \001(\t\022\020\n\010location\030\002 \001(\t\"U\n\033CheckAva" +
       "ilableRoomsResponse\022\014\n\004date\030\001 \001(\t\022\020\n\010roo" +
-      "mName\030\002 \001(\t\022\026\n\016availableTimes\030\003 \001(\t\"q\n\017B" +
+      "mName\030\002 \001(\t\022\026\n\016availableTimes\030\003 \001(\t\"]\n\017B" +
       "ookRoomRequest\022\014\n\004date\030\001 \001(\t\022\014\n\004time\030\002 \001" +
-      "(\t\022\024\n\014numAttendees\030\003 \001(\005\022\024\n\014foodRequired" +
-      "\030\004 \001(\t\022\026\n\016drinksRequired\030\005 \001(\t\"v\n\020BookRo" +
-      "omResponse\022\014\n\004date\030\001 \001(\t\022\020\n\010roomName\030\002 \001" +
-      "(\t\022\024\n\014numAttendees\030\003 \001(\t\022\024\n\014foodRequired" +
-      "\030\004 \001(\t\022\026\n\016drinksRequired\030\005 \001(\t2\351\001\n\022RoomB" +
-      "ookingService\022z\n\023checkAvailableRooms\022..r" +
-      "oombookingservice.CheckAvailableRoomsReq" +
-      "uest\032/.roombookingservice.CheckAvailable" +
-      "RoomsResponse\"\0000\001\022W\n\010bookRoom\022#.roombook" +
-      "ingservice.BookRoomRequest\032$.roombooking" +
-      "service.BookRoomResponse\"\000B<\n com.dsproj" +
-      "ect.roombookingserviceB\026RoomBookingServi" +
-      "ceImplP\001b\006proto3"
+      "(\t\022\024\n\014numAttendees\030\003 \001(\005\022\030\n\020cateringRequ" +
+      "ired\030\004 \001(\t\"\221\001\n\020BookRoomResponse\022\033\n\023booki" +
+      "ngConfirmation\030\001 \001(\t\022\014\n\004date\030\002 \001(\t\022\014\n\004ti" +
+      "me\030\003 \001(\t\022\024\n\014numAttendees\030\004 \001(\005\022\034\n\024cateri" +
+      "ngRequirements\030\005 \001(\t\022\020\n\010roomName\030\006 \001(\t2\351" +
+      "\001\n\022RoomBookingService\022z\n\023checkAvailableR" +
+      "ooms\022..roombookingservice.CheckAvailable" +
+      "RoomsRequest\032/.roombookingservice.CheckA" +
+      "vailableRoomsResponse\"\0000\001\022W\n\010bookRoom\022#." +
+      "roombookingservice.BookRoomRequest\032$.roo" +
+      "mbookingservice.BookRoomResponse\"\000B<\n co" +
+      "m.dsproject.roombookingserviceB\026RoomBook" +
+      "ingServiceImplP\001b\006proto3"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
         new com.google.protobuf.Descriptors.FileDescriptor.    InternalDescriptorAssigner() {
@@ -92,13 +92,13 @@ public final class RoomBookingServiceImpl {
     internal_static_roombookingservice_BookRoomRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_roombookingservice_BookRoomRequest_descriptor,
-        new java.lang.String[] { "Date", "Time", "NumAttendees", "FoodRequired", "DrinksRequired", });
+        new java.lang.String[] { "Date", "Time", "NumAttendees", "CateringRequired", });
     internal_static_roombookingservice_BookRoomResponse_descriptor =
       getDescriptor().getMessageTypes().get(3);
     internal_static_roombookingservice_BookRoomResponse_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessageV3.FieldAccessorTable(
         internal_static_roombookingservice_BookRoomResponse_descriptor,
-        new java.lang.String[] { "Date", "RoomName", "NumAttendees", "FoodRequired", "DrinksRequired", });
+        new java.lang.String[] { "BookingConfirmation", "Date", "Time", "NumAttendees", "CateringRequirements", "RoomName", });
   }
 
   // @@protoc_insertion_point(outer_class_scope)

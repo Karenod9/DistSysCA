@@ -27,17 +27,15 @@ public class AuthenticationServicesServer extends AuthenticationServicesImplBase
 	private static final Logger logger = Logger.getLogger(AuthenticationServicesServer.class.getName());
 
 	public static void main(String[] args) throws IOException, InterruptedException {
-
+		//create server
 		AuthenticationServicesServer authenticationServicesServer = new AuthenticationServicesServer();
 		
 		Properties prop = authenticationServicesServer.getProperties();
 		authenticationServicesServer.registerService(prop);
 		
-		//int port = 50051;
 		int port = Integer.valueOf(prop.getProperty("service_port"));
 		
 		try {
-		
 		Server server = ServerBuilder.forPort(port)
 				.addService(authenticationServicesServer)
 				.build()
@@ -49,9 +47,8 @@ public class AuthenticationServicesServer extends AuthenticationServicesImplBase
 		}catch (InterruptedException e) {
 			e.printStackTrace();
 		}
-		
 	}
-	
+	//get jmdns properties
 	private Properties getProperties() {
 		Properties prop = null;
 		try(InputStream input = new FileInputStream("src/main/resources/account.properties")){
@@ -70,8 +67,8 @@ public class AuthenticationServicesServer extends AuthenticationServicesImplBase
 		}
 		return prop;
 			
-			
 		}
+	//register jmdns services
 	private void registerService(Properties prop) {
 		try {
 			JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
@@ -99,7 +96,8 @@ public class AuthenticationServicesServer extends AuthenticationServicesImplBase
 		}
 	}
 	
-	
+	// lOGIN TO USE SERVICES - UNARY GRPC
+	// USERNAME AND PASSWORD MUST MATCH IN ORDER TO BE LOGGED IN.
 	@Override
 	public void login(LoginRequest request, StreamObserver<LoginResponse> responseObserver) {
 		String username = request.getUsername();
@@ -125,6 +123,7 @@ public class AuthenticationServicesServer extends AuthenticationServicesImplBase
 		responseObserver.onCompleted();
 	}
 	
+	//LOGOUT - UNARY GRPC
 	@Override
 	public void logout(LogoutRequest request, StreamObserver<LogoutResponse> responseObserver) {
 		int requestMessage = request.getRequestMessage();

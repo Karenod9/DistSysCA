@@ -8,52 +8,57 @@ public interface BookRoomResponseOrBuilder extends
     com.google.protobuf.MessageOrBuilder {
 
   /**
-   * <code>string date = 1;</code>
+   * <code>string bookingConfirmation = 1;</code>
+   */
+  java.lang.String getBookingConfirmation();
+  /**
+   * <code>string bookingConfirmation = 1;</code>
+   */
+  com.google.protobuf.ByteString
+      getBookingConfirmationBytes();
+
+  /**
+   * <code>string date = 2;</code>
    */
   java.lang.String getDate();
   /**
-   * <code>string date = 1;</code>
+   * <code>string date = 2;</code>
    */
   com.google.protobuf.ByteString
       getDateBytes();
 
   /**
-   * <code>string roomName = 2;</code>
+   * <code>string time = 3;</code>
+   */
+  java.lang.String getTime();
+  /**
+   * <code>string time = 3;</code>
+   */
+  com.google.protobuf.ByteString
+      getTimeBytes();
+
+  /**
+   * <code>int32 numAttendees = 4;</code>
+   */
+  int getNumAttendees();
+
+  /**
+   * <code>string cateringRequirements = 5;</code>
+   */
+  java.lang.String getCateringRequirements();
+  /**
+   * <code>string cateringRequirements = 5;</code>
+   */
+  com.google.protobuf.ByteString
+      getCateringRequirementsBytes();
+
+  /**
+   * <code>string roomName = 6;</code>
    */
   java.lang.String getRoomName();
   /**
-   * <code>string roomName = 2;</code>
+   * <code>string roomName = 6;</code>
    */
   com.google.protobuf.ByteString
       getRoomNameBytes();
-
-  /**
-   * <code>string numAttendees = 3;</code>
-   */
-  java.lang.String getNumAttendees();
-  /**
-   * <code>string numAttendees = 3;</code>
-   */
-  com.google.protobuf.ByteString
-      getNumAttendeesBytes();
-
-  /**
-   * <code>string foodRequired = 4;</code>
-   */
-  java.lang.String getFoodRequired();
-  /**
-   * <code>string foodRequired = 4;</code>
-   */
-  com.google.protobuf.ByteString
-      getFoodRequiredBytes();
-
-  /**
-   * <code>string drinksRequired = 5;</code>
-   */
-  java.lang.String getDrinksRequired();
-  /**
-   * <code>string drinksRequired = 5;</code>
-   */
-  com.google.protobuf.ByteString
-      getDrinksRequiredBytes();
 }

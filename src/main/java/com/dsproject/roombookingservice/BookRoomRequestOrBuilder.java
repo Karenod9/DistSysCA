@@ -33,22 +33,12 @@ public interface BookRoomRequestOrBuilder extends
   int getNumAttendees();
 
   /**
-   * <code>string foodRequired = 4;</code>
+   * <code>string cateringRequired = 4;</code>
    */
-  java.lang.String getFoodRequired();
+  java.lang.String getCateringRequired();
   /**
-   * <code>string foodRequired = 4;</code>
+   * <code>string cateringRequired = 4;</code>
    */
   com.google.protobuf.ByteString
-      getFoodRequiredBytes();
-
-  /**
-   * <code>string drinksRequired = 5;</code>
-   */
-  java.lang.String getDrinksRequired();
-  /**
-   * <code>string drinksRequired = 5;</code>
-   */
-  com.google.protobuf.ByteString
-      getDrinksRequiredBytes();
+      getCateringRequiredBytes();
 }

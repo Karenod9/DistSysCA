@@ -45,7 +45,7 @@ public class EmployeeExpenseServiceClient {
 		//create an asynchronous client
 		asyncStub = EmployeeExpenseServiceGrpc.newStub(channel);
 		
-		addExpenseClaim(channel);
+		//addExpenseClaim(channel);
 		addMultiExpenseClaim(channel);
 //		uploadExpenseReceipts(channel);
 		//checkExpenseClaimAsync(channel);

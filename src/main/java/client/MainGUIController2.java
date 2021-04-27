@@ -12,6 +12,7 @@ import javax.swing.JPasswordField;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
@@ -19,6 +20,7 @@ import javax.swing.JTextField;
 
 import java.awt.EventQueue;
 import java.awt.event.ActionListener;
+import java.beans.PropertyChangeEvent;
 import java.awt.event.ActionEvent;
 
 import javax.jmdns.JmDNS;
@@ -31,6 +33,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -53,9 +56,12 @@ import com.dsproject.authenticationservices.AuthenticationServicesGrpc.Authentic
 import com.dsproject.employeeexpenseservice.EmployeeExpenseServiceGrpc;
 import com.dsproject.employeeexpenseservice.UploadExpenseReceiptsRequest;
 import com.dsproject.employeeexpenseservice.UploadExpenseReceiptsResponse;
+import com.dsproject.roombookingservice.BookRoomRequest;
+import com.dsproject.roombookingservice.BookRoomResponse;
 import com.dsproject.roombookingservice.CheckAvailableRoomsRequest;
 import com.dsproject.roombookingservice.CheckAvailableRoomsResponse;
 import com.dsproject.roombookingservice.RoomBookingServiceGrpc;
+import com.dsproject.roombookingservice.RoomBookingServiceGrpc.RoomBookingServiceBlockingStub;
 import com.dsproject.employeeexpenseservice.AddExpenseClaimRequest;
 import com.dsproject.employeeexpenseservice.AddExpenseClaimResponse;
 import com.dsproject.employeeexpenseservice.AddMultiExpenseClaimRequest;
@@ -80,16 +86,16 @@ import javax.swing.UIManager;
 import javax.swing.border.EmptyBorder;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.JPanel;
+import java.io.PrintStream;
 
 public class MainGUIController2 implements ActionListener{
-	
-	private static ServiceInfo authenticationServicesInfo; 
-	private static ServiceInfo empServiceInfo, servicesInfo;
-	private static ServiceInfo roomBookingServiceInfo;
-	private static AuthenticationServicesBlockingStub blockingStub;
+
+	private static ServiceInfo servicesInfo;
+	private static RoomBookingServiceBlockingStub blockingStub2;
 	private static EmployeeExpenseServiceStub asyncStub;
+	private static AuthenticationServicesBlockingStub blockingStub;
 	
-	private static JFrame servicesPanelFrame, Loginframe, empExpenseServicesFrame, unaryExpClaimFrame, biDiExpClaimFrame, uploadExpRecFrame, expenseStatusFrame, checkAvailableRoomsFrame, roomBookSerFrame;
+	private static JFrame servicesPanelFrame, Loginframe, empExpenseServicesFrame, unaryExpClaimFrame, biDiExpClaimFrame, uploadExpRecFrame, expenseStatusFrame, checkAvailableRoomsFrame, roomBookSerFrame, bookRoomFrame;
 	private static JTextField usernameText, amountBox, passwordText;
 	private static JTextField filePath;
 	private static JTextArea serverResp;
@@ -97,10 +103,10 @@ public class MainGUIController2 implements ActionListener{
 	private static String location;
 	private int respCode = -1;
 	int loginOK = -1;
-	private static JButton logoutButton, addBtn;
+	private static JButton addBtn;
 	private static PrintStream standardOut;
 	private String host = "localhost";
-
+	
 
 	public static void main(String[] args) {
 		EventQueue.invokeLater(new Runnable() {
@@ -119,12 +125,6 @@ public class MainGUIController2 implements ActionListener{
 	public MainGUIController2() {
 		String service_type = "_http._tcp.local.";
 		discoverServices(service_type);
-		
-//		String emp_service_type = "_http._tcp.local.";
-//		discoverEmployeeExpenseServices(emp_service_type);
-//		
-//		String room_booking_service_type = "_http._tcp.local.";
-//		discoverRoomBookingService(room_booking_service_type);
 		
 		initializeGUI();
 	}
@@ -210,13 +210,17 @@ public class MainGUIController2 implements ActionListener{
 			}
 		});
 
-		logoutButton = new JButton("Logout");
+		JButton logoutButton = new JButton("Logout");
 		logoutButton.setFont(new Font("Tahoma", Font.BOLD, 13));
 		logoutButton.setBounds(264, 166, 112, 33);
 		Loginframe.getContentPane().add(logoutButton);
 
 		logoutButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent ee) {
+				
+				ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50051).usePlaintext().build();
+				blockingStub = AuthenticationServicesGrpc.newBlockingStub(channel);
+				
 				int logout = 1;
 				LogoutRequest req = LogoutRequest.newBuilder().setRequestMessage(logout).build();
 				LogoutResponse response = blockingStub.logout(req);
@@ -257,15 +261,12 @@ public class MainGUIController2 implements ActionListener{
 				empExpenseServices();
 				empExpenseServicesFrame.setVisible(true);
 			}
-
 		});
-
 		bookingButton.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent a) {
 				servicesPanelFrame.dispose();
 				roomBookingServices();
 				roomBookSerFrame.setVisible(true);
-
 			}
 		});
 	}
@@ -404,7 +405,6 @@ public class MainGUIController2 implements ActionListener{
 					}
 				}catch(NumberFormatException fe) {
 					serverResp.setForeground(Color.RED);
-
 					serverResp.append("\n ERROR: Please enter a valid amount \n");
 				}	
 			}
@@ -496,8 +496,6 @@ public class MainGUIController2 implements ActionListener{
 			}
 		});
 
-
-
 		addBtn.addActionListener(new ActionListener(){
 			public void actionPerformed(ActionEvent c) {
 
@@ -525,20 +523,17 @@ public class MainGUIController2 implements ActionListener{
 							e.printStackTrace();
 						}
 					}
-
 					@Override
 					public void onError(Throwable t) {
 						System.out.println("Error with server. Please try again.");
 						t.printStackTrace();
 						latch.countDown();
 					}
-
 					@Override
 					public void onCompleted() {
 						System.out.println("Expenses sent!");
 						System.out.println("... received " + count + " expense requests" + " Total amount sent : " + df.format(runningTotal));
 						latch.countDown();
-
 					}
 				};
 
@@ -605,7 +600,7 @@ public class MainGUIController2 implements ActionListener{
 		scrollPane.setBackground(UIManager.getColor("Button.background"));
 		scrollPane.setBounds(10, 344, 635, 256);
 		scrollPane.setBorder(null);
-
+		
 		biDiExpClaimPanel.add(scrollPane);
 		PrintStream printStream = new PrintStream(new MyOutputStream(serverResp));
 		standardOut = System.out;
@@ -708,7 +703,6 @@ public class MainGUIController2 implements ActionListener{
 						System.out.println("Finished");
 						latch.countDown();
 					}
-
 				};
 
 				StreamObserver<UploadExpenseReceiptsRequest> requestObserver = asyncStub.uploadExpenseReceipts(responseObserver);
@@ -792,7 +786,7 @@ public class MainGUIController2 implements ActionListener{
 		 * 4) CHECK ALL PREVIOUS CLAIMS SENT (SERVER SIDE STREAMING RPC)
 		 */
 		
-	public static void expenseClaimStatusPanel() {
+	public void expenseClaimStatusPanel() {
 
 		expenseStatusFrame = new JFrame("Claim Expense Status");
 		expenseStatusFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -808,10 +802,14 @@ public class MainGUIController2 implements ActionListener{
 		JButton expenseStatusBtn = new JButton("Click for Claim Status : ");
 		expenseStatusBtn.setBounds(310, 47, 223, 67);
 		expStatusPanel.add(expenseStatusBtn);
-
+		
+		JButton backBtn = new JButton(" Back ");
+		backBtn.setBounds(707, 32, 95, 33);
+		expStatusPanel.add(backBtn);
+		backBtn.addActionListener(this);
+		
 		expenseStatusBtn.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent a) {
-
 
 				ManagedChannel channel = ManagedChannelBuilder.forAddress("localhost", 50052).usePlaintext().build();
 				EmployeeExpenseServiceBlockingStub blockingStub = EmployeeExpenseServiceGrpc.newBlockingStub(channel);
@@ -835,7 +833,6 @@ public class MainGUIController2 implements ActionListener{
 								} catch (InterruptedException e) {
 									e.printStackTrace();
 								}
-
 							}
 						}
 					});
@@ -845,7 +842,6 @@ public class MainGUIController2 implements ActionListener{
 				}
 			}
 		});
-
 		serverResp = new JTextArea();
 		serverResp.setEditable(false);
 		serverResp.setLineWrap(true);
@@ -882,16 +878,16 @@ public class MainGUIController2 implements ActionListener{
 		roomBookSerPanel.setVisible(true);
 
 		JButton checkRoomBtn = new JButton("Check availabilty");
-		checkRoomBtn.setBounds(53, 137, 144, 62);
+		checkRoomBtn.setBounds(34, 131, 164, 69);
 		roomBookSerPanel.add(checkRoomBtn);
 		checkRoomBtn.addActionListener(this);
 
 		JButton bookRoomBtn = new JButton("Book now");
-		bookRoomBtn.setBounds(265, 137, 144, 62);
+		bookRoomBtn.setBounds(258, 131, 164, 69);
 		roomBookSerPanel.add(bookRoomBtn);
 		bookRoomBtn.addActionListener(this);
 
-		JButton backBookSer = new JButton("Back to All Services");
+		JButton backBookSer = new JButton("Back;");
 		backBookSer.setBounds(332, 283, 95, 33);
 		roomBookSerPanel.add(backBookSer);
 		backBookSer.addActionListener(this);
@@ -970,7 +966,6 @@ public class MainGUIController2 implements ActionListener{
 								Iterator<CheckAvailableRoomsResponse> response = blockingStub.checkAvailableRooms(req);
 								while(response.hasNext()) {
 									CheckAvailableRoomsResponse resp = response.next();
-									//serverResp.append("\nDate : " + resp.getDate() + " || Room : " + resp.getRoomName() + " || Time : " + resp.getAvailableTimes());
 									System.out.println("Date : " + resp.getDate() + " || Room : " + resp.getRoomName() + " || Time : " + resp.getAvailableTimes());
 									try{
 										Thread.sleep(1000);
@@ -1009,7 +1004,128 @@ public class MainGUIController2 implements ActionListener{
 		 * 2) BOOK A ROOM (UNARY RPC)
 		 * 
 		 */	
-		public static void bookRoom() {
+		public void bookRoom() {
+			
+			bookRoomFrame = new JFrame("Book Room");
+			bookRoomFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+			bookRoomFrame.setBounds(100, 100, 649, 664);
+			JPanel bookRoomPanel = new JPanel();
+			bookRoomPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+			bookRoomPanel.setLayout(null);
+			bookRoomFrame.add(bookRoomPanel);
+			bookRoomFrame.setVisible(true);
+			bookRoomPanel.setVisible(true);
+
+			JLabel title = new JLabel("Book A Meeting Room : ");
+			title.setBounds(249, 11, 172, 50);
+			bookRoomPanel.add(title);
+
+			JLabel date = new JLabel("Enter a date");
+			date.setBounds(57, 106, 147, 31);
+			bookRoomPanel.add(date);
+
+			JLabel time = new JLabel("Enter time");
+			time.setBounds(57, 163, 147, 31);
+			bookRoomPanel.add(time);
+			
+			JLabel attendees = new JLabel("Number of attendees");
+			attendees.setBounds(57, 228, 147, 31);
+			bookRoomPanel.add(attendees);
+			
+			JCheckBox caterCheckBox = new JCheckBox("Tick if you need catering");
+			caterCheckBox.setBounds(206, 298, 196, 23);
+			bookRoomPanel.add(caterCheckBox);
+
+			JTextField dateInput = new JTextField();
+			dateInput.setBounds(339, 106, 113, 31);
+			bookRoomPanel.add(dateInput);
+			dateInput.setColumns(10);
+			
+			JTextField attendInput = new JTextField();
+			attendInput.setBounds(339, 233, 113, 31);
+			bookRoomPanel.add(attendInput);
+			attendInput.setColumns(10);
+
+			String[] timeList = {"9:00 - 10:00", "10:00 - 11:00", "11:00 - 12:00", "12:00-13:00", "13:00 - 14:00", "14:00 - 15:00", "15:00 - 16:00", "16:00 - 17:00", "17:00 - 18:00", "18:00 - 19:00"};
+			final JComboBox<String> timeListComboBox = new JComboBox<String>(timeList);
+			timeListComboBox.setBounds(339, 168, 113, 31);
+			bookRoomPanel.add(timeListComboBox);
+			
+			JButton sendBtn = new JButton("Book: ");
+			sendBtn.setBounds(206, 373, 196, 31);
+			bookRoomPanel.add(sendBtn);
+
+			JButton back = new JButton("Back:  ");
+			back.setBounds(497, 21, 113, 31);
+			bookRoomPanel.add(back);
+			back.addActionListener(this);
+	
+			sendBtn.addActionListener(new ActionListener(){
+				public void actionPerformed(ActionEvent d) {
+					
+					String cateringRequired;
+					
+					int validate =0;
+					validate = validateDateInput(dateInput);
+
+					if(validate == 1 || validate == 0) {
+						JOptionPane.showMessageDialog(null, "Invalid date input. Please enter a valid date in format dd-mm-yyyy");
+					}else if(validate == 2) {
+						int exception =0;
+						int numAttendees =0;
+						String numAttend = attendInput.getText();
+						try {
+							numAttendees = Integer.parseInt(numAttend.trim());
+						}catch(Exception e) {
+							JOptionPane.showMessageDialog(null, "This is not a valid input. Please ensure that input in a positive integer");
+							exception =1;
+						}
+						
+						if(exception == 0) {
+						String dateIn = dateInput.getText();
+						String time = timeListComboBox.getSelectedItem().toString();
+						
+						boolean selected = caterCheckBox.isSelected();
+						if(selected) {
+							cateringRequired = "Yes";
+						}else {
+							cateringRequired = "No";
+						}
+						
+						ManagedChannel channel = ManagedChannelBuilder.forAddress("Localhost", 50053).usePlaintext().build();		
+						blockingStub2 = RoomBookingServiceGrpc.newBlockingStub(channel);
+						
+						
+						BookRoomRequest req = BookRoomRequest.newBuilder().setDate(dateIn).setTime(time).setCateringRequired(cateringRequired).setNumAttendees(numAttendees).build();
+						BookRoomResponse response = blockingStub2.bookRoom(req);
+						System.out.println(response.getBookingConfirmation() + response.getRoomName() + response.getDate() +response.getTime() + response.getNumAttendees() + response.getCateringRequirements());
+						
+						try {
+							
+							Thread.sleep(3000);
+						}catch(InterruptedException e) {
+							System.out.println("Error sending to server.");
+							e.printStackTrace();
+						}
+						}else {
+							
+						}
+					}
+				}
+			});
+			
+			serverResp = new JTextArea();
+			serverResp.setBounds(10, 428, 613, 186);
+			bookRoomPanel.add(serverResp);
+			JScrollPane scrollPane = new JScrollPane(serverResp);
+			scrollPane.setBounds(10, 428, 613, 186);
+			scrollPane.setBorder(null);
+			bookRoomPanel.add(scrollPane);
+			PrintStream printStream = new PrintStream(new MyOutputStream(serverResp));
+			standardOut = System.out;
+			System.setOut(printStream);
+			System.setErr(printStream);
+			
 		}
 		/*
 		 *ACTIONS PERFORMED ON BUTTONS CLICKED
@@ -1048,11 +1164,22 @@ public class MainGUIController2 implements ActionListener{
 				System.out.println("Checking availability");
 				roomBookSerFrame.dispose();
 				checkAvailableRooms();
-
+				
+			}if(label.equals("Back;")) {
+				roomBookSerFrame.dispose();
+				servicesPanelFrame.setVisible(true);
+				
 			}if(label.equals("Book now")) {
-				System.out.println("Loading book now");
 				roomBookSerFrame.dispose();
 				bookRoom();
+				
+			}if(label.equals("Back:  ")) {
+				bookRoomFrame.dispose();
+				roomBookSerFrame.setVisible(true);
+				
+			}if(label.equals(" Back ")) {
+				expenseStatusFrame.dispose();
+				empExpenseServicesFrame.setVisible(true);
 
 			}else if(label.equals("Back:")) {
 				checkAvailableRoomsFrame.dispose();
@@ -1131,105 +1258,6 @@ public class MainGUIController2 implements ActionListener{
 		}
 	}
 	
-//	private void discoverEmployeeExpenseServices(String service_type) {
-//		System.out.println("discoverEmployeeExpenseServices");
-//		
-//		try {
-//			JmDNS jmdns = JmDNS.create(InetAddress.getLocalHost());
-//	
-//			jmdns.addServiceListener(service_type, new ServiceListener() {
-//				
-//				@Override
-//				public void serviceResolved(ServiceEvent event) {
-//					System.out.println("Employee Expense Services resolved : " +event.getInfo());
-//					
-//					empServiceInfo = event.getInfo();
-//					
-////					int port = 50051;
-////					String host = "localhost";
-////					String[] host = authenticationServicesInfo.getHostAddresses();
-//					int port = empServiceInfo.getPort();
-//					
-//					//int port = empServiceInfo.getPort();
-//					System.out.println("RESOLVING : .......");
-//					System.out.println("resolving " + service_type + " with properties as follows: ...");
-//					System.out.println(" Port: " + port);
-//					System.out.println(" Type:"+ event.getType());
-//					System.out.println(" Name: " + event.getName());
-//					System.out.println(" Description: " + empServiceInfo.getNiceTextString());
-//					System.out.println(" Host: " + empServiceInfo.getHostAddresses()[0]);		
-//					
-//				}
-//
-//				@Override
-//				public void serviceAdded(ServiceEvent event) {
-//					System.out.println("Employee Expense Services added: " + event.getInfo());
-//					
-//				}
-//
-//				@Override
-//				public void serviceRemoved(ServiceEvent event) {
-//					System.out.println("Employee Expense Services Removed: " + event.getInfo());
-//					
-//				}
-//			});
-//			Thread.sleep(2000);
-//			jmdns.close();
-//			
-//		} catch (UnknownHostException e) {
-//			System.out.println(e.getMessage());
-//		} catch (IOException e) {
-//			System.out.println(e.getMessage());
-//		}catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//	}
-//	
-//	private void discoverRoomBookingService(String service_type) {
-//		System.out.println("discoverDiscoverRoomBookingService");
-//		
-//		try {
-//			JmDNS jmdns = JmDNS.create(host);
-//	
-//			jmdns.addServiceListener(service_type, new ServiceListener() {
-//				
-//				@Override
-//				public void serviceResolved(ServiceEvent event) {
-//					System.out.println("Room Booking Services resolved : " +event.getInfo());
-//					
-//					roomBookingServiceInfo = event.getInfo();
-//					
-//					int port = roomBookingServiceInfo.getPort();
-//					System.out.println("RESOLVING : .......");
-//					System.out.println("resolving " + service_type + " with properties as follows: ...");
-//					System.out.println(" Port: " + port);
-//					System.out.println(" Type:"+ event.getType());
-//					System.out.println(" Name: " + event.getName());
-//					System.out.println(" Description: " + roomBookingServiceInfo.getNiceTextString());
-//					System.out.println(" Host: " + roomBookingServiceInfo.getHostAddresses()[0]);					
-//				}
-//
-//				@Override
-//				public void serviceAdded(ServiceEvent event) {
-//					System.out.println("Room Booking Services added: " + event.getInfo());
-//				}
-//
-//				@Override
-//				public void serviceRemoved(ServiceEvent event) {
-//					System.out.println("Room Booking Services Removed: " + event.getInfo());
-//				}
-//			});
-//			Thread.sleep(2000);
-//			jmdns.close();
-//			
-//		} catch (UnknownHostException e) {
-//			System.out.println(e.getMessage());
-//		} catch (IOException e) {
-//			System.out.println(e.getMessage());
-//		}catch (InterruptedException e) {
-//			e.printStackTrace();
-//		}
-//	}
 }
 
 
