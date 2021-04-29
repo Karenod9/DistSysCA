@@ -1004,188 +1004,203 @@ public class MainGUIController2 implements ActionListener{
 		 * 2) BOOK A ROOM (UNARY RPC)
 		 * 
 		 */	
-		public void bookRoom() {
+	public void bookRoom() {
 			
-			bookRoomFrame = new JFrame("Book Room");
-			bookRoomFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			bookRoomFrame.setBounds(100, 100, 649, 664);
-			JPanel bookRoomPanel = new JPanel();
-			bookRoomPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
-			bookRoomPanel.setLayout(null);
-			bookRoomFrame.add(bookRoomPanel);
-			bookRoomFrame.setVisible(true);
-			bookRoomPanel.setVisible(true);
+		bookRoomFrame = new JFrame("Book Room");
+		bookRoomFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		bookRoomFrame.setBounds(100, 100, 649, 664);
+		JPanel bookRoomPanel = new JPanel();
+		bookRoomPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		bookRoomPanel.setLayout(null);
+		bookRoomFrame.add(bookRoomPanel);
+		bookRoomFrame.setVisible(true);
+		bookRoomPanel.setVisible(true);
 
-			JLabel title = new JLabel("Book A Meeting Room : ");
-			title.setBounds(249, 11, 172, 50);
-			bookRoomPanel.add(title);
+		JLabel title = new JLabel("Book A Meeting Room : ");
+		title.setBounds(249, 11, 172, 50);
+		bookRoomPanel.add(title);
 
-			JLabel date = new JLabel("Enter a date");
-			date.setBounds(57, 106, 147, 31);
-			bookRoomPanel.add(date);
+		JLabel date = new JLabel("Enter a date");
+		date.setBounds(57, 106, 147, 31);
+		bookRoomPanel.add(date);
 
-			JLabel time = new JLabel("Enter time");
-			time.setBounds(57, 163, 147, 31);
-			bookRoomPanel.add(time);
-			
-			JLabel attendees = new JLabel("Number of attendees");
-			attendees.setBounds(57, 228, 147, 31);
-			bookRoomPanel.add(attendees);
-			
-			JCheckBox caterCheckBox = new JCheckBox("Tick if you need catering");
-			caterCheckBox.setBounds(206, 298, 196, 23);
-			bookRoomPanel.add(caterCheckBox);
+		JLabel time = new JLabel("Enter time");
+		time.setBounds(57, 163, 147, 31);
+		bookRoomPanel.add(time);
 
-			JTextField dateInput = new JTextField();
-			dateInput.setBounds(339, 106, 113, 31);
-			bookRoomPanel.add(dateInput);
-			dateInput.setColumns(10);
-			
-			JTextField attendInput = new JTextField();
-			attendInput.setBounds(339, 233, 113, 31);
-			bookRoomPanel.add(attendInput);
-			attendInput.setColumns(10);
+		JLabel attendees = new JLabel("Number of attendees");
+		attendees.setBounds(57, 228, 147, 31);
+		bookRoomPanel.add(attendees);
 
-			String[] timeList = {"9:00 - 10:00", "10:00 - 11:00", "11:00 - 12:00", "12:00-13:00", "13:00 - 14:00", "14:00 - 15:00", "15:00 - 16:00", "16:00 - 17:00", "17:00 - 18:00", "18:00 - 19:00"};
-			final JComboBox<String> timeListComboBox = new JComboBox<String>(timeList);
-			timeListComboBox.setBounds(339, 168, 113, 31);
-			bookRoomPanel.add(timeListComboBox);
-			
-			JButton sendBtn = new JButton("Book: ");
-			sendBtn.setBounds(206, 373, 196, 31);
-			bookRoomPanel.add(sendBtn);
+		JCheckBox caterCheckBox = new JCheckBox("Tick if you need catering");
+		caterCheckBox.setBounds(206, 298, 196, 23);
+		bookRoomPanel.add(caterCheckBox);
 
-			JButton back = new JButton("Back:  ");
-			back.setBounds(497, 21, 113, 31);
-			bookRoomPanel.add(back);
-			back.addActionListener(this);
-	
-			sendBtn.addActionListener(new ActionListener(){
-				public void actionPerformed(ActionEvent d) {
-					
-					String cateringRequired;
-					
-					int validate =0;
-					validate = validateDateInput(dateInput);
+		JTextField dateInput = new JTextField();
+		dateInput.setBounds(339, 106, 113, 31);
+		bookRoomPanel.add(dateInput);
+		dateInput.setColumns(10);
 
-					if(validate == 1 || validate == 0) {
-						JOptionPane.showMessageDialog(null, "Invalid date input. Please enter a valid date in format dd-mm-yyyy");
-					}else if(validate == 2) {
-						int exception =0;
-						int numAttendees =0;
-						String numAttend = attendInput.getText();
-						try {
-							numAttendees = Integer.parseInt(numAttend.trim());
-						}catch(Exception e) {
-							JOptionPane.showMessageDialog(null, "This is not a valid input. Please ensure that input in a positive integer");
-							exception =1;
-						}
-						
-						if(exception == 0) {
+		JTextField attendInput = new JTextField();
+		attendInput.setBounds(339, 233, 113, 31);
+		bookRoomPanel.add(attendInput);
+		attendInput.setColumns(10);
+
+		String[] timeList = { "9:00 - 10:00", "10:00 - 11:00", "11:00 - 12:00", "12:00-13:00", "13:00 - 14:00",
+				"14:00 - 15:00", "15:00 - 16:00", "16:00 - 17:00", "17:00 - 18:00", "18:00 - 19:00" };
+		final JComboBox<String> timeListComboBox = new JComboBox<String>(timeList);
+		timeListComboBox.setBounds(339, 168, 113, 31);
+		bookRoomPanel.add(timeListComboBox);
+
+		JButton sendBtn = new JButton("Book: ");
+		sendBtn.setBounds(206, 373, 196, 31);
+		bookRoomPanel.add(sendBtn);
+
+		JButton back = new JButton("Back:  ");
+		back.setBounds(497, 21, 113, 31);
+		bookRoomPanel.add(back);
+		back.addActionListener(this);
+
+		sendBtn.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent d) {
+
+				String cateringRequired;
+
+				int validate = 0;
+				validate = validateDateInput(dateInput);
+
+				if (validate == 1 || validate == 0) {
+					JOptionPane.showMessageDialog(null,
+							"Invalid date input. Please enter a valid date in format dd-mm-yyyy");
+				} else if (validate == 2) {
+					int exception = 0;
+					int numAttendees = 0;
+					String numAttend = attendInput.getText();
+					try {
+						numAttendees = Integer.parseInt(numAttend.trim());
+					} catch (Exception e) {
+						JOptionPane.showMessageDialog(null,
+								"This is not a valid input. Please ensure that input in a positive integer");
+						exception = 1;
+					}
+
+					if (exception == 0) {
 						String dateIn = dateInput.getText();
 						String time = timeListComboBox.getSelectedItem().toString();
-						
+
 						boolean selected = caterCheckBox.isSelected();
-						if(selected) {
+						if (selected) {
 							cateringRequired = "Yes";
-						}else {
+						} else {
 							cateringRequired = "No";
 						}
-						
-						ManagedChannel channel = ManagedChannelBuilder.forAddress("Localhost", 50053).usePlaintext().build();		
+
+						ManagedChannel channel = ManagedChannelBuilder.forAddress("Localhost", 50053).usePlaintext()
+								.build();
 						blockingStub2 = RoomBookingServiceGrpc.newBlockingStub(channel);
-						
-						
-						BookRoomRequest req = BookRoomRequest.newBuilder().setDate(dateIn).setTime(time).setCateringRequired(cateringRequired).setNumAttendees(numAttendees).build();
+
+						BookRoomRequest req = BookRoomRequest.newBuilder().setDate(dateIn).setTime(time)
+								.setCateringRequired(cateringRequired).setNumAttendees(numAttendees).build();
 						BookRoomResponse response = blockingStub2.bookRoom(req);
-						System.out.println(response.getBookingConfirmation() + response.getRoomName() + response.getDate() +response.getTime() + response.getNumAttendees() + response.getCateringRequirements());
-						
+						System.out.println(response.getBookingConfirmation() + response.getRoomName()
+								+ response.getDate() + response.getTime() + response.getNumAttendees()
+								+ response.getCateringRequirements());
+
 						try {
-							
+
 							Thread.sleep(3000);
-						}catch(InterruptedException e) {
+						} catch (InterruptedException e) {
 							System.out.println("Error sending to server.");
 							e.printStackTrace();
 						}
-						}else {
-							
-						}
+					} else {
+
 					}
 				}
-			});
-			
-			serverResp = new JTextArea();
-			serverResp.setBounds(10, 428, 613, 186);
-			bookRoomPanel.add(serverResp);
-			JScrollPane scrollPane = new JScrollPane(serverResp);
-			scrollPane.setBounds(10, 428, 613, 186);
-			scrollPane.setBorder(null);
-			bookRoomPanel.add(scrollPane);
-			PrintStream printStream = new PrintStream(new MyOutputStream(serverResp));
-			standardOut = System.out;
-			System.setOut(printStream);
-			System.setErr(printStream);
-			
-		}
-		/*
-		 *ACTIONS PERFORMED ON BUTTONS CLICKED
-		 */		
-		
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			JButton button = (JButton)e.getSource();
-			String label = button.getActionCommand();
-
-			if(label.equals("Add One Expense Claim")) {
-				System.out.println("Add Single Expense Claim Loading...");
-				empExpenseServicesFrame.dispose();
-				singleExpenseClaimPanel();
-
-			}if(label.equals("Add Multiple Expense Claims")) {
-				System.out.println("Add Multiple Expense Claims Loading...");
-				empExpenseServicesFrame.dispose();
-				multiExpensePanel();
-
-			}if(label.equals("Upload Expense Receipts")) {
-				System.out.println("Upload Expense Receipts Loading...");
-				empExpenseServicesFrame.dispose();
-				uploadExpReceiptPanel();
-
-			}if(label.equals("Expense Claims Status")) {
-				System.out.println("Check Expense Claims Status Loading...");
-				empExpenseServicesFrame.dispose();
-				expenseClaimStatusPanel();
-
-			}if(label.equals("Back")) {
-				empExpenseServicesFrame.dispose();
-				servicesPanelFrame.setVisible(true);
-
-			}if(label.equals("Check availabilty")) {
-				System.out.println("Checking availability");
-				roomBookSerFrame.dispose();
-				checkAvailableRooms();
-				
-			}if(label.equals("Back;")) {
-				roomBookSerFrame.dispose();
-				servicesPanelFrame.setVisible(true);
-				
-			}if(label.equals("Book now")) {
-				roomBookSerFrame.dispose();
-				bookRoom();
-				
-			}if(label.equals("Back:  ")) {
-				bookRoomFrame.dispose();
-				roomBookSerFrame.setVisible(true);
-				
-			}if(label.equals(" Back ")) {
-				expenseStatusFrame.dispose();
-				empExpenseServicesFrame.setVisible(true);
-
-			}else if(label.equals("Back:")) {
-				checkAvailableRoomsFrame.dispose();
-				roomBookSerFrame.setVisible(true);
 			}
+		});
+
+		serverResp = new JTextArea();
+		serverResp.setBounds(10, 428, 613, 186);
+		bookRoomPanel.add(serverResp);
+		JScrollPane scrollPane = new JScrollPane(serverResp);
+		scrollPane.setBounds(10, 428, 613, 186);
+		scrollPane.setBorder(null);
+		bookRoomPanel.add(scrollPane);
+		PrintStream printStream = new PrintStream(new MyOutputStream(serverResp));
+		standardOut = System.out;
+		System.setOut(printStream);
+		System.setErr(printStream);
+
+	}
+	/*
+	 * ACTIONS PERFORMED ON BUTTONS CLICKED
+	 */
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		JButton button = (JButton) e.getSource();
+		String label = button.getActionCommand();
+
+		if (label.equals("Add One Expense Claim")) {
+			System.out.println("Add Single Expense Claim Loading...");
+			empExpenseServicesFrame.dispose();
+			singleExpenseClaimPanel();
+
 		}
+		if (label.equals("Add Multiple Expense Claims")) {
+			System.out.println("Add Multiple Expense Claims Loading...");
+			empExpenseServicesFrame.dispose();
+			multiExpensePanel();
+
+		}
+		if (label.equals("Upload Expense Receipts")) {
+			System.out.println("Upload Expense Receipts Loading...");
+			empExpenseServicesFrame.dispose();
+			uploadExpReceiptPanel();
+
+		}
+		if (label.equals("Expense Claims Status")) {
+			System.out.println("Check Expense Claims Status Loading...");
+			empExpenseServicesFrame.dispose();
+			expenseClaimStatusPanel();
+
+		}
+		if (label.equals("Back")) {
+			empExpenseServicesFrame.dispose();
+			servicesPanelFrame.setVisible(true);
+
+		}
+		if (label.equals("Check availabilty")) {
+			System.out.println("Checking availability");
+			roomBookSerFrame.dispose();
+			checkAvailableRooms();
+
+		}
+		if (label.equals("Back;")) {
+			roomBookSerFrame.dispose();
+			servicesPanelFrame.setVisible(true);
+
+		}
+		if (label.equals("Book now")) {
+			roomBookSerFrame.dispose();
+			bookRoom();
+
+		}
+		if (label.equals("Back:  ")) {
+			bookRoomFrame.dispose();
+			roomBookSerFrame.setVisible(true);
+
+		}
+		if (label.equals(" Back ")) {
+			expenseStatusFrame.dispose();
+			empExpenseServicesFrame.setVisible(true);
+
+		} else if (label.equals("Back:")) {
+			checkAvailableRoomsFrame.dispose();
+			roomBookSerFrame.setVisible(true);
+		}
+	}
 	
 		/*
 		 *VALIDATION FOR DATE INPUT
